@@ -554,7 +554,12 @@
     $('syncNow').addEventListener('click', () => { $('syncStatus').textContent = T('동기화 중…'); syncer.now(); });
     $('syncStop').addEventListener('click', () => { if (confirm(T('연동을 끊을까요? 이 기기의 데이터는 그대로 남아요.'))) { syncer.stop(); renderSync(); } });
     $('syncServer').addEventListener('change', () => { data.settings.syncServer = $('syncServer').value.trim(); saveLocal(); syncer.now(); });
-    $('syncDot').addEventListener('click', () => { if (syncer.state().code) syncer.now(); showView('set'); });
+    // the dot in the corner: tap to sync right now
+    $('syncDot').addEventListener('click', () => {
+      if (!syncer.state().code) { showView('set'); return; }
+      $('syncDot').className = 'sync-dot busy';
+      syncer.now().then(() => { const st = syncer.state(); renderSync(); say(st.error ? T('동기화 실패: {e}', { e: st.error }) : T('PC랑 맞췄어.')); });
+    });
     checkHash();
     window.addEventListener('hashchange', checkHash);
     renderSync();
