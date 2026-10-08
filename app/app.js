@@ -91,6 +91,8 @@
     if (!text) return;
     // quiet: only questions and what you asked for (tapping her) get a bubble
     if (data.settings.mChatter === 'quiet' && !(opts.buttons && opts.buttons.length) && !opts.force) return;
+    // a question that's waiting isn't covered by small talk
+    if (!$('bubble').hidden && $('bubbleButtons').children.length && !(opts.buttons && opts.buttons.length) && !opts.force) return;
     const kind = opts.kind;
     $('bubbleText').textContent = text;
     const face = kind && MOOD[kind] ? `face_${MOOD[kind]}` : null;
@@ -119,6 +121,7 @@
 
   // first time today / coming back: one line that fits the hour
   function greet() {
+    if (ui.fromWidget) return;                 // opened by tapping the widget: that comes first
     const fired = today().fired;
     const h = new Date().getHours();
     const slot = h < 11 ? 'morning' : h >= 22 || h < 4 ? 'night' : h >= 18 ? 'evening' : 'back';
@@ -415,7 +418,13 @@
     else if (n && !deleted && (n.text || '').trim()) sayKind('memo');
     $('sheet').hidden = true; persist(); renderNotes();
   }
-  $('sheet').addEventListener('click', (e) => { if (e.target === $('sheet')) closeSheet(); });
+  $('sheet').addEventListener('click', (e) => { if (e.target === $('sheet')) { if (editing) closeSheet(); else $('sheet').hidden = true; } });
+  // 위젯 꾸미기: the real widget, drawn here with your data; copy the Parameter text it shows
+  $('openDesigner').addEventListener('click', () => {
+    $('sheet').hidden = false;
+    window.WidgetDesigner.open({ T, mk, body: $('sheetBody'), close: () => { $('sheet').hidden = true; },
+      entries: () => { const v = S.flatten(data, S.minKey()), e = {}; Object.keys(v).forEach(k => { e[k] = { v: v[k], t: 1 }; }); return e; } });
+  });
 
   // ---------- calendar ----------
   function renderCal() {
@@ -667,17 +676,44 @@
     setInterval(() => { if (document.visibilityState === 'visible') syncer.now(); }, 30000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refreshDay(); syncer.now(); } else syncer.now(); });
   }
-  // opened from the QR code on the PC: #join=CODE
+  // opened from the PC's QR code (#join=CODE) or by tapping the widget (#join=CODE&done=DAY~ID, &routine=…, &memo=ID, &view=…)
   function checkHash() {
-    const m = location.hash.match(/join=([A-Za-z0-9-]+)/);
-    if (m) {
-      history.replaceState(null, '', location.pathname + location.search);
-      const code = S.cleanCode(m[1]);
+    const h = location.hash.replace(/^#/, '');
+    if (!h) return;
+    const q = {}; h.split('&').forEach(kv => { const i = kv.indexOf('='); if (i > 0) q[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1)); });
+    history.replaceState(null, '', location.pathname + location.search);
+    let ready = null;
+    if (q.join) {
+      const code = S.cleanCode(q.join);
       if (code && syncer.state().code !== code) {
-        if (!syncer.state().code) join(code, true);
+        if (!syncer.state().code) ready = join(code, true);
         else say(T('PC의 다른 연동 코드로 바꿀까?'), { buttons: [{ label: T('바꾸기'), primary: true, run: () => join(code, true) }, { label: T('취소') }] });
       }
     }
+    if (q.done || q.routine || q.memo || q.view) ui.fromWidget = true;
+    if (q.done || q.routine || q.memo || q.view) Promise.resolve(ready || syncer.now()).then(() => fromWidget(q));
+  }
+  function fromWidget(q) {
+    refreshDay();
+    if (q.memo) { const n = notes().find(x => x.id === q.memo); showView('notes'); if (n) openNote(n); return; }
+    if (q.view && ['today', 'notes', 'cal', 'set'].includes(q.view)) showView(q.view);
+    const [key, id] = (q.done || q.routine || '').split('~');
+    if (!key || !id) return;
+    showView('today');
+    const day = data.days[key];
+    if (q.routine) {
+      const r = routines().find(x => x.id === id); if (!r || !day) return;
+      const done = !!day.routines[id];
+      say(done ? T('"{t}" 이미 X야. 되돌릴까?', { t: r.label }) : T('"{t}" X 칠까?', { t: r.label }), { buttons: [
+        { label: done ? T('되돌리기') : 'X', primary: true, run: () => { if (done) delete day.routines[id]; else day.routines[id] = true; persist(); renderToday(); if (!done) praise(); } }, { label: T('아니') }] });
+      return;
+    }
+    const t = day && day.tasks.find(x => x.id === id);
+    if (!t) { say(T('그 할 일을 못 찾았어. 벌써 지웠나 봐.'), { force: true }); return; }
+    if (t.status !== 'open' && t.status !== 'done') { say(T('"{t}"는 이미 옮겼어.', { t: t.text }), { force: true }); return; }
+    const done = t.status === 'done';
+    say(done ? T('"{t}" 이미 X야. 되돌릴까?', { t: t.text }) : T('"{t}" X 칠까?', { t: t.text }), { buttons: [
+      { label: done ? T('되돌리기') : 'X', primary: true, run: () => { const st = L.toggleDone(day, id); persist(); renderToday(); if (st === 'done') { if (t.kind === 'task') praise(); else hop(); } } }, { label: T('아니') }] });
   }
   function needServer() { renderSync(T('서버 주소가 아직 없어요')); $('syncServer').closest('details').open = true; }
   function join(code, fromLink) {
@@ -686,7 +722,7 @@
     if (!p) return renderSync(T('코드가 16자리가 아니에요'));
     $('syncJoinInput').value = '';
     renderSync();
-    p.then(() => { if (!syncer.state().error) { hop(); say(T('PC랑 연결됐어. 이제 어디서 적어도 같이 보여.'), { kind: 'praise' }); } });
+    return p.then(() => { if (!syncer.state().error) { hop(); say(T('PC랑 연결됐어. 이제 어디서 적어도 같이 보여.'), { kind: 'praise' }); } });
   }
 
   // ---------- views ----------

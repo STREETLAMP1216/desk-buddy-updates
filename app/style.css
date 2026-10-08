@@ -255,3 +255,26 @@ body.char-off .add-bar { padding-right: 12px; }
 .set-tabs button { flex: none; border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 6px 14px; font-size: 14px; color: var(--muted); }
 .set-tabs button.on { background: var(--mint); border-color: var(--ink); color: var(--ink); font-weight: 700; }
 .set-sec > h3:first-child { margin-top: 8px; }
+
+/* 위젯 꾸미기 */
+.wd { display: flex; flex-direction: column; gap: 10px; height: 100%; overflow-y: auto; padding-bottom: 20px; }
+.wd-bar { display: flex; align-items: center; justify-content: space-between; font-size: 17px; }
+.wd-fams { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: none; }
+.wd-fams::-webkit-scrollbar { display: none; }
+.wd-fams button { flex: none; border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 6px 12px; font-size: 13px; color: var(--muted); }
+.wd-fams button.on { background: var(--mint); border-color: var(--ink); color: var(--ink); font-weight: 700; }
+.wd-stage { flex: none; display: flex; justify-content: center; align-items: center; min-height: 190px; padding: 16px 8px; border-radius: 16px;
+  background: linear-gradient(160deg, #dfe6ee, #c9d3df); overflow-x: auto; }
+.wd-stage.dark { background: linear-gradient(160deg, #3a4a63, #6a5a7e); min-height: 120px; }
+.wd-box { flex: none; overflow: hidden; box-shadow: 0 3px 12px rgba(0,0,0,.18); font-family: -apple-system, 'Apple SD Gothic Neo', sans-serif; }
+.wd-box.lock { box-shadow: none; }
+.wd-hint { margin: 0; }
+.wd-parts { display: flex; flex-wrap: wrap; gap: 6px; }
+.wd-part { display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid var(--line); background: var(--paper); border-radius: 999px; padding: 7px 13px; font-size: 14px; }
+.wd-part.on { border-color: var(--ink); background: var(--mint); font-weight: 700; }
+.wd-part.ghost { color: var(--muted); border-style: dashed; }
+.wd-n { display: inline-block; min-width: 18px; height: 18px; border-radius: 9px; background: var(--ink); color: #fff; font: 700 11px/18px ui-monospace, Menlo, monospace; text-align: center; }
+.wd-out { display: flex; flex-direction: column; gap: 8px; border: 1.5px solid var(--ink); border-radius: 14px; padding: 12px; background: var(--soft); }
+.wd-code { font: 600 15px/1.5 ui-monospace, Menlo, monospace; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px; user-select: all; -webkit-user-select: all; word-break: keep-all; }
+.wd-out .pill { align-self: flex-start; }
+.wd-out .pill:disabled { opacity: .5; }
