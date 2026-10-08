@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>책상 친구</title>
+<meta name="theme-color" content="#F2F7F4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="책상 친구">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="shared/assets/icon_shiori.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="top-l">
+      <div id="dayLabel" class="day"></div>
+      <div id="dayCount" class="sub"></div>
+    </div>
+    <button id="syncDot" class="sync-dot" type="button" aria-label="동기화 상태"></button>
+  </header>
+
+  <main id="views">
+    <!-- today -->
+    <section id="todayView" class="view">
+      <div class="block-nav">
+        <button id="blockPrev" type="button" aria-label="이전 블럭">‹</button>
+        <span id="blockNow"></span>
+        <button id="blockNext" type="button" aria-label="다음 블럭">›</button>
+      </div>
+      <div id="blocks" class="blocks"></div>
+      <ul id="taskList" class="task-list"></ul>
+    </section>
+
+    <!-- memos -->
+    <section id="notesView" class="view" hidden>
+      <div class="view-head"><span class="sub">📌 고정한 메모가 위로 와요</span><button id="noteNew" class="pill" type="button">+ 새 메모</button></div>
+      <div id="noteList" class="note-list"></div>
+    </section>
+
+    <!-- calendar -->
+    <section id="calView" class="view" hidden>
+      <div class="cal-head">
+        <button id="calPrev" type="button" aria-label="이전 달">‹</button>
+        <b id="calTitle"></b>
+        <button id="calNext" type="button" aria-label="다음 달">›</button>
+      </div>
+      <div id="calGrid" class="cal-grid"></div>
+      <div id="calDay" class="cal-day"></div>
+    </section>
+
+    <!-- settings -->
+    <section id="setView" class="view" hidden>
+      <h3>PC 연동</h3>
+      <p class="sub">PC의 책상 친구와 할 일·블럭·루틴·메모·일정을 주고받아요. 내용은 연동 코드로 암호화돼서 서버에서도 못 읽어요.</p>
+      <div id="syncOff">
+        <form id="syncJoin" class="add-row" autocomplete="off">
+          <input id="syncJoinInput" type="text" autocapitalize="characters" placeholder="PC 설정 › 폰 연동의 코드" aria-label="연동 코드">
+          <button type="submit">연결</button>
+        </form>
+        <button id="syncStart" class="ghost wide" type="button">여기서 새 코드 만들기</button>
+      </div>
+      <div id="syncOn" hidden>
+        <div class="sync-code"><code id="syncCode"></code></div>
+        <div class="row-between"><span id="syncStatus" class="sub"></span><button id="syncNow" class="pill" type="button">지금 동기화</button></div>
+        <button id="syncStop" class="ghost wide" type="button">연동 끊기</button>
+      </div>
+      <div id="syncNote" class="sub warn"></div>
+      <details class="adv"><summary>서버 주소</summary><input id="syncServer" type="url" inputmode="url" placeholder="https://….workers.dev"></details>
+
+      <h3>캐릭터</h3>
+      <div id="charPick" class="char-pick"></div>
+
+      <h3>기본</h3>
+      <label class="field">언어
+        <select id="setLang"><option value="ko">한국어</option><option value="en">English</option><option value="ja">日本語</option></select>
+      </label>
+      <label class="field">나를 부르는 말
+        <select id="setCallMe"><option value="">안 부르기</option><option value="야">야</option><option value="저기">저기</option><option value="이봐">이봐</option><option value="custom">이름 직접 입력…</option></select>
+      </label>
+      <label class="field" id="callMeNameRow" hidden>내 이름 <input id="setCallMeName" type="text" maxlength="10" placeholder="예: 수환"></label>
+      <label class="field">하루 시작 <input id="setDayStart" type="time"></label>
+
+      <h3>매일 루틴</h3>
+      <ul id="routineEditor" class="routine-editor"></ul>
+      <form id="routineAdd" class="add-row" autocomplete="off">
+        <input id="routineInput" type="text" placeholder="루틴 추가 (예: 스트레칭)" aria-label="루틴 추가">
+        <button type="submit">추가</button>
+      </form>
+
+      <h3>앱으로 쓰기</h3>
+      <p class="sub" id="installHint">아이폰: Safari 공유 버튼 › 홈 화면에 추가. 갤럭시: Chrome 메뉴 › 홈 화면에 추가.</p>
+      <p class="sub dim" id="verLabel"></p>
+    </section>
+  </main>
+
+  <form id="addForm" class="add-bar" autocomplete="off">
+    <input id="addInput" type="text" enterkeyhint="done" placeholder="할 일 추가 · 앞에 u 나 * 붙이면 표시" aria-label="할 일 추가">
+    <button type="submit" aria-label="추가">+</button>
+  </form>
+
+  <nav class="tabs" role="tablist">
+    <button data-view="today" class="on" type="button"><span class="ti">·X</span><span>오늘</span></button>
+    <button data-view="notes" type="button"><span class="ti">—</span><span>메모</span></button>
+    <button data-view="cal" type="button"><span class="ti">○</span><span>달력</span></button>
+    <button data-view="set" type="button"><span class="ti">⚙</span><span>설정</span></button>
+  </nav>
+
+  <div id="buddy" class="buddy" aria-label="캐릭터">
+    <div id="bubble" class="bubble" hidden>
+      <div class="bubble-main"><img id="bubbleFace" class="bubble-face" alt="" hidden><div id="bubbleText"></div></div>
+      <div id="bubbleButtons" class="bubble-buttons"></div>
+    </div>
+    <img id="buddyImg" alt="">
+  </div>
+
+  <div id="sheet" class="sheet" hidden>
+    <div class="sheet-card" role="dialog" aria-modal="true">
+      <div id="sheetBody"></div>
+    </div>
+  </div>
+</div>
+
+<script src="shared/assets/manifest.js"></script>
+<script src="shared/character.js"></script>
+<script src="shared/lines.js"></script>
+<script src="shared/lines_fubuki.js"></script>
+<script src="shared/lines_suu.js"></script>
+<script src="shared/lines/shiori_en.js"></script>
+<script src="shared/lines/fubuki_en.js"></script>
+<script src="shared/lines/suu_en.js"></script>
+<script src="shared/lines/shiori_ja.js"></script>
+<script src="shared/lines/fubuki_ja.js"></script>
+<script src="shared/lines/suu_ja.js"></script>
+<script src="shared/i18n.js"></script>
+<script src="shared/logic.js"></script>
+<script src="shared/sync.js"></script>
+<script src="version.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
