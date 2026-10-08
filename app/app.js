@@ -174,12 +174,12 @@
         const s = document.createElement('i'); s.textContent = blockGlyph(t); s.className = 'g-' + (t.kind === 'event' ? 'event' : t.status); gl.appendChild(s);
       });
       cell.appendChild(gl);
-      cell.addEventListener('click', (e) => { e.stopPropagation(); ui.blockView = ui.blockView === n ? null : n; renderToday(); });
+      cell.addEventListener('click', (e) => { e.stopPropagation(); if (ui.blockView !== n) { ui.blockView = n; ui.blockOnly = false; } else if (!ui.blockOnly) ui.blockOnly = true; else { ui.blockView = null; ui.blockOnly = false; } renderToday(); });
       box.appendChild(cell);
     }
   }
   $('blocks').addEventListener('click', () => { ui.blockView = ui.blockView === 'byBlock' ? null : 'byBlock'; renderToday(); });
-  function setBlock(n) { today().block = Math.max(1, Math.min(6, n)); persist(); renderToday(); }
+  function setBlock(n) { const d = today(); d.block = Math.max(1, Math.min(6, n)); if (typeof ui.blockView === 'number') ui.blockView = d.block; else if (!ui.blockView) { ui.blockView = d.block; ui.blockOnly = false; } persist(); renderToday(); }
   $('blockPrev').addEventListener('click', () => setBlock(curBlock() - 1));
   $('blockNext').addEventListener('click', () => {
     const d = today(), cur = curBlock();
@@ -241,7 +241,7 @@
     if (v === 'byBlock') shown = items.map((x, i) => ({ x, i })).sort((a, b) => bnum(a.x) - bnum(b.x) || a.i - b.i).map(y => y.x);
     else if (typeof v === 'number') {
       shown = items.map((x, i) => ({ x, i, k: x.block === v ? 0 : 1 })).sort((a, b) => a.k - b.k || a.i - b.i).map(y => y.x);
-      list.appendChild(mk('li', 'sec', T('{n}블럭', { n: v }) + (v === curBlock() ? ' · ' + T('지금 블럭') : '')));
+      list.appendChild(mk('li', 'sec', T('{n}블럭', { n: v }) + (v === curBlock() ? ' · ' + T('지금 블럭') : '') + ' · ' + (ui.blockOnly ? T('이 블럭만') : T('한 번 더 누르면 이 블럭만'))));
     }
     if (!day.tasks.length && !items.length) list.appendChild(mk('li', 'empty', T('수첩에 적은 할 일을 여기도 적어 두면, PC에서도 같이 보여요. 5분짜리는 앞에 u.')));
     let lastB = null;
@@ -251,7 +251,7 @@
         list.appendChild(mk('li', 'sec', lastB === 7 ? T('블럭 없음') : T('{n}블럭', { n: lastB }) + (lastB === curBlock() ? ' · ' + T('지금 블럭') : '')));
       }
       const row = x.r ? routineRow(x.r, day) : taskRow(x.t, day, x.depth);
-      if (typeof v === 'number' && x.block !== v) row.classList.add('dim');
+      if (typeof v === 'number' && x.block !== v) { if (ui.blockOnly) return; row.classList.add('dim'); }
       list.appendChild(row);
     });
     renderBlocks();
