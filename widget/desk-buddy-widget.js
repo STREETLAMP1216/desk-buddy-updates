@@ -212,8 +212,14 @@ async function lineBank(ch, lang) {
 }
 
 // what she'd say right now, and which drawing goes with it
+function battery() {
+  try { return { level: Math.round(Device.batteryLevel() * 100), charging: Device.isCharging(), full: Device.isFullyCharged() }; } catch (e) { return null; }
+}
 function situation(m, now) {
   const min = now.getHours() * 60 + now.getMinutes();
+  const b = battery();
+  if (b && b.level <= 20 && !b.charging) return { kind: b.level <= 10 ? 'batteryVeryLow' : 'batteryLow', pose: 'battery_low', vars: { level: b.level } };
+  if (b && b.charging && b.full) return { kind: 'batteryFull', pose: 'battery_full' };
   const near = (hhmm, before, after) => { const [h, mm] = hhmm.split(':').map(Number); const t = h * 60 + mm; return min >= t - before && min <= t + after; };
   if (min >= 23 * 60 || min < 5 * 60) return { kind: 'night', pose: 'pajama' };
   if (m.total && !m.open.length) return { kind: 'praiseAll', pose: 'done' };
@@ -229,7 +235,7 @@ function speak(bank, kind, m) {
   const pick = pool[Math.floor(Date.now() / (15 * 60000)) % pool.length];           // changes every 15 minutes
   const next = (m.current[0] || m.open[0] || {}).text || '';
   let s = pick;
-  Object.entries({ task: next, count: m.done, left: m.open.length, name: m.who }).forEach(([k, v]) => { s = s.split('{' + k + '}').join(String(v)); });
+  Object.entries({ task: next, count: m.done, left: m.open.length, name: m.who, level: (battery() || {}).level }).forEach(([k, v]) => { s = s.split('{' + k + '}').join(String(v)); });
   return s.replace(/\{\w+\}/g, '').trim();
 }
 
@@ -239,7 +245,7 @@ const C = (hex) => new Color(hex);
 const ALIASES = {
   캐릭터: 'char', 큰캐릭터: 'charBig', 캐릭터크게: 'charBig', 작은캐릭터: 'charSmall', 캐릭터작게: 'charSmall', 말: 'talk', 말풍선: 'talk',
   날짜: 'date', 시간: 'time', 시계: 'time', 진행: 'progress', 블럭: 'blocks', 블록: 'blocks', 지금블럭: 'now', 현재블럭: 'now', 할일: 'tasks',
-  u: 'u', U: 'u', 루틴: 'routines', 일정: 'events', 메모: 'memo',
+  u: 'u', U: 'u', 루틴: 'routines', 일정: 'events', 메모: 'memo', 배터리: 'battery', battery: 'battery',
   char: 'char', big: 'charBig', small: 'charSmall', talk: 'talk', date: 'date', time: 'time', progress: 'progress', blocks: 'blocks', now: 'now',
   tasks: 'tasks', routines: 'routines', events: 'events', memo: 'memo'
 };
@@ -355,6 +361,13 @@ function parts(col, cfg, m0, width, budget, fs, family) {
         txt(r, '○', fs, m.th.deep, { bold: true }); if (t.time) txt(r, t.time, fs, m.th.deep, { bold: true }); txt(r, t.text, fs, INK, { lines: 1 });
         used += 1;
       });
+    } else if (p === 'battery') {
+      const b = battery(); if (!b) continue;
+      const r = col.addStack(); r.centerAlignContent(); r.spacing = 6;
+      txt(r, `${b.charging ? '⚡' : '🔋'} ${b.level}%`, fs + 1, b.level <= 20 && !b.charging ? RED : INK, { bold: true });
+      const word = { ko: b.full ? '다 찼어' : b.charging ? '충전 중' : b.level <= 20 ? '충전 필요' : '', en: b.full ? 'full' : b.charging ? 'charging' : b.level <= 20 ? 'charge me' : '', ja: b.full ? '満タン' : b.charging ? '充電中' : b.level <= 20 ? '充電して' : '' }[m.lang];
+      if (word) txt(r, word, fs - 1, MUTED);
+      used += 1;
     } else if (p === 'memo') {
       if (!m.notes.length) { txt(col, m.W.noMemo, fs - 1, MUTED); used += 1; continue; }
       m.notes.slice(0, Math.max(1, Math.floor(room()))).forEach(n => {
@@ -526,7 +539,7 @@ async function askCode(current) {
 }
 const PART_MENU = [['큰캐릭터', '캐릭터 그림 (크게)'], ['작은캐릭터', '캐릭터 얼굴 (작게)'], ['말', '말풍선 (지금 상황에 맞는 한마디)'], ['날짜', '날짜'], ['시간', '시계'],
   ['진행', '끝낸 수 / 전체 + 진행 막대'], ['블럭', '블럭 6칸 (불릿 기호)'], ['지금블럭', '지금 블럭 할 일'], ['할일', '남은 할 일 전부'], ['u', 'u 할 일만'],
-  ['루틴', '오늘 루틴'], ['일정', '다음 일정'], ['메모', '메모 첫 줄 (고정 먼저)']];
+  ['루틴', '오늘 루틴'], ['일정', '다음 일정'], ['메모', '메모 첫 줄 (고정 먼저)'], ['배터리', '폰 배터리 · 충전 중']];
 async function designer(m, info) {
   const picked = [];
   for (;;) {

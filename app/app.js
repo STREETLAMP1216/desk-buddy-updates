@@ -232,7 +232,7 @@
     }
     const v = ui.blockView;
     const items = L.routinesFor(ui.key, routines()).map(r => ({ r, block: r.block }))
-      .concat(L.ordered(day.tasks, day.customOrder).map(t => ({ t, block: t.block })));
+      .concat(L.tree(day.tasks, day.customOrder).map(x => ({ t: x.t, block: x.block, depth: x.depth })));
     const bnum = (x) => x.block || 7;
     let shown = items;
     if (v === 'byBlock') shown = items.map((x, i) => ({ x, i })).sort((a, b) => bnum(a.x) - bnum(b.x) || a.i - b.i).map(y => y.x);
@@ -247,7 +247,7 @@
         lastB = bnum(x);
         list.appendChild(mk('li', 'sec', lastB === 7 ? T('블럭 없음') : T('{n}블럭', { n: lastB }) + (lastB === curBlock() ? ' · ' + T('지금 블럭') : '')));
       }
-      const row = x.r ? routineRow(x.r, day) : taskRow(x.t, day);
+      const row = x.r ? routineRow(x.r, day) : taskRow(x.t, day, x.depth);
       if (typeof v === 'number' && x.block !== v) row.classList.add('dim');
       list.appendChild(row);
     });
@@ -280,18 +280,22 @@
     return li;
   }
 
-  function taskRow(t, day) {
-    const li = mk('li', `task ${t.status}${t.kind !== 'task' ? ' ' + t.kind : ''}`);
+  function taskRow(t, day, depth) {
+    const li = mk('li', `task ${t.status}${t.kind !== 'task' ? ' ' + t.kind : ''}${depth ? ' sub' : ''}`);
     li.appendChild(mk('span', 'marks', (t.u ? 'u' : '') + (t.star ? '*' : '')));
-    const bk = mk('button', 'blk' + (t.block ? '' : ' none'), t.block || '–'); bk.setAttribute('aria-label', T('블럭 고르기'));
-    bk.addEventListener('click', () => toggleActs(t.id));
-    li.appendChild(bk);
+    if (depth) li.appendChild(mk('span', 'blk-sp', '└'));
+    else {
+      const bk = mk('button', 'blk' + (t.block ? '' : ' none'), t.block || '–'); bk.setAttribute('aria-label', T('블럭 고르기'));
+      bk.addEventListener('click', () => toggleActs(t.id));
+      li.appendChild(bk);
+    }
     const g = mk('button', 'glyph' + (t.status === 'done' ? ' done' : ''), L.glyph(t));
     g.disabled = !((t.kind === 'task' || t.kind === 'event') && (t.status === 'open' || t.status === 'done'));
     g.addEventListener('click', () => { const st = L.toggleDone(today(), t.id); persist(); renderToday(); if (st === 'done') { if (t.kind === 'task') praise(); else hop(); } });
     li.appendChild(g);
     const tx = mk('span', 'text');
-    if (t.time) tx.appendChild(mk('span', 'time', t.time));
+    const when = L.whenText(t, LANG);
+    if (when) tx.appendChild(mk('span', 'when' + (t.time ? ' at' : ''), when));
     tx.appendChild(document.createTextNode(t.text));
     if (t.status === 'scheduled' && t.to) tx.appendChild(document.createTextNode(`  → ${L.label(t.to)}`));
     if (t.status === 'migrated') tx.appendChild(document.createTextNode('  → ' + T('내일')));
@@ -303,18 +307,20 @@
     if (ui.openActs === t.id) { li.classList.add('open-acts'); li.appendChild(taskActs(t, day)); }
     return li;
   }
-  function toggleActs(id) { ui.openActs = ui.openActs === id ? null : id; renderToday(); }
+  function toggleActs(id) { if (ui.openActs === id) window.TaskMore.close(); ui.openActs = ui.openActs === id ? null : id; renderToday(); }
   function taskActs(t, day) {
     const acts = mk('div', 'acts');
     const btn = (label, run, cls) => { const b = mk('button', cls || '', label); b.addEventListener('click', run); acts.appendChild(b); return b; };
     const done = () => { ui.openActs = null; persist(); renderToday(); };
-    const row = mk('div', 'blkrow');
-    [1, 2, 3, 4, 5, 6, 0].forEach(n => {
-      const b = mk('button', (t.block || 0) === n ? 'on' : '', n || '–');
-      b.addEventListener('click', () => { t.block = n || undefined; done(); });
-      row.appendChild(b);
-    });
-    acts.appendChild(row);
+    if (!t.parent) {
+      const row = mk('div', 'blkrow');
+      [1, 2, 3, 4, 5, 6, 0].forEach(n => {
+        const b = mk('button', (t.block || 0) === n ? 'on' : '', n || '–');
+        b.addEventListener('click', () => { window.TaskMore.setBlock(day, t, n || undefined); done(); });
+        row.appendChild(b);
+      });
+      acts.appendChild(row);
+    }
     if (t.kind === 'task' && t.status === 'open') {
       btn('> ' + T('내일로'), () => { L.migrate(data, ui.key, t.id); done(); sayKind('migrate'); });
       const date = document.createElement('input'); date.type = 'date'; date.min = L.addDays(ui.key, 1);
@@ -322,22 +328,24 @@
       acts.appendChild(date);
       btn('< ' + T('날짜로'), () => { try { date.showPicker(); } catch (e) { date.focus(); date.click(); } });
     }
-    if ((t.kind === 'task' || t.kind === 'event') && t.status === 'open') {
-      btn(t.kind === 'task' ? '○ ' + T('일정으로') : '· ' + T('할 일로'), () => { t.kind = t.kind === 'task' ? 'event' : 'task'; done(); });
-    }
-    btn('u', () => { t.u = !t.u; done(); }, t.u ? 'on' : '');
-    btn('*', () => { t.star = !t.star; done(); }, t.star ? 'on' : '');
-    const i = day.tasks.indexOf(t);
     btn('↑', () => move(day, t, -1)); btn('↓', () => move(day, t, 1));
-    btn('✕ ' + T('지우기'), () => { day.tasks = day.tasks.filter(x => x !== t); done(); }, 'danger');
+    btn('✕ ' + T('지우기'), () => { window.TaskMore.remove(day, t); done(); }, 'danger');
+    acts.appendChild(window.TaskMore.panel(t, { T, lang: LANG, day, changed: () => { persist(); renderToday(); } }));
     return acts;
   }
-  // move within your own order (the same list the PC drags)
+  // move within your own order (the same list the PC drags): a task moves with its sub-items, a sub-item among its siblings
   function move(day, t, dir) {
-    const order = L.ordered(day.tasks, day.customOrder);
-    const i = order.indexOf(t), j = i + dir;
-    if (j < 0 || j >= order.length) return;
-    [order[i], order[j]] = [order[j], order[i]];
+    const flat = L.tree(day.tasks, day.customOrder).map(x => x.t);
+    const fam = (x) => [x].concat(window.TaskMore.kids(day, x.id));
+    let units;
+    if (t.parent) units = flat.filter(x => x.parent === t.parent).map(x => [x]);
+    else units = flat.filter(x => !x.parent || !flat.some(p => p.id === x.parent)).map(fam);
+    const i = units.findIndex(u => u[0] === t), j = i + dir;
+    if (i < 0 || j < 0 || j >= units.length) return;
+    [units[i], units[j]] = [units[j], units[i]];
+    let order;
+    if (t.parent) { const sib = units.flat(); let k = 0; order = flat.map(x => (x.parent === t.parent ? sib[k++] : x)); }
+    else order = units.flat();
     day.tasks = order; day.customOrder = true; persist(); renderToday();
   }
 
@@ -347,6 +355,10 @@
     if (!p.text) return;
     const nt = L.newTask(p, new Date()); nt.block = typeof ui.blockView === 'number' ? ui.blockView : curBlock();
     today().tasks.push(nt);
+    if (p.sub) {                                       // "ㄴ ..." goes under the last task in this view
+      const tops = L.tree(today().tasks, today().customOrder).filter(x => x.depth === 0 && x.t !== nt && (typeof ui.blockView !== 'number' || x.block === ui.blockView));
+      if (tops.length) window.TaskMore.makeChild(today(), nt, tops[tops.length - 1].t);
+    }
     $('addInput').value = '';
     persist(); renderToday();
     const list = $('views'); setTimeout(() => { list.scrollTop = list.scrollHeight; }, 0);
@@ -482,6 +494,28 @@
       b.addEventListener('click', () => { if (c.id === CH.id) return; data.settings.character = c.id; persist(); setCharacter(c.id); });
       box.appendChild(b);
     });
+  }
+  // settings in sub-tabs (like the PC): each <h3> group goes under one tab
+  const SET_TABS = [['연동', ['PC 연동']], ['캐릭터', ['캐릭터', '캐릭터 · 말']], ['기본', ['기본']], ['알람', ['알람']], ['루틴', ['매일 루틴']], ['기타', ['메모', '아이폰 위젯', '앱으로 쓰기']]];
+  function buildSetTabs() {
+    const view = $('setView'); if (view.dataset.tabbed) return showSetTab();
+    view.dataset.tabbed = '1';
+    const groups = []; let cur = null;
+    [...view.children].forEach(el => { if (el.tagName === 'H3') { cur = { title: el.dataset.k || el.textContent.trim(), els: [] }; groups.push(cur); } if (cur) cur.els.push(el); });
+    const nav = mk('nav', 'set-tabs'); nav.setAttribute('role', 'tablist'); view.prepend(nav);
+    SET_TABS.forEach(([name, titles], k) => {
+      const sec = mk('section', 'set-sec'); sec.dataset.k = k;
+      groups.filter(g => titles.includes(g.title)).forEach(g => g.els.forEach(el => sec.appendChild(el)));
+      view.appendChild(sec);
+      const b = mk('button', '', T(name)); b.setAttribute('role', 'tab'); b.addEventListener('click', () => { ui.setTab = k; showSetTab(); $('views').scrollTop = 0; });
+      nav.appendChild(b);
+    });
+    showSetTab();
+  }
+  function showSetTab() {
+    const k = ui.setTab || 0;
+    document.querySelectorAll('#setView .set-sec').forEach(s => { s.hidden = +s.dataset.k !== k; });
+    document.querySelectorAll('#setView .set-tabs button').forEach((b, i) => b.classList.toggle('on', i === k));
   }
   function fillSettings() {
     $('setLang').value = LANG;
@@ -665,7 +699,7 @@
     if (v === 'today') renderToday();
     if (v === 'notes') renderNotes();
     if (v === 'cal') { if (!ui.calSel) ui.calSel = ui.key; renderCal(); }
-    if (v === 'set') { header(); fillSettings(); }
+    if (v === 'set') { header(); buildSetTabs(); fillSettings(); }
     $('views').scrollTop = 0;
   }
   document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));

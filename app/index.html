@@ -56,7 +56,7 @@
 
     <!-- settings -->
     <section id="setView" class="view" hidden>
-      <h3>PC 연동</h3>
+      <h3 data-k="PC 연동">PC 연동</h3>
       <p class="sub">PC의 책상 친구와 할 일·블럭·루틴·메모·일정을 주고받아요. 내용은 연동 코드로 암호화돼서 서버에서도 못 읽어요.</p>
       <div id="syncOff">
         <form id="syncJoin" class="add-row" autocomplete="off">
@@ -73,10 +73,10 @@
       <div id="syncNote" class="sub warn"></div>
       <details class="adv"><summary>서버 주소</summary><input id="syncServer" type="url" inputmode="url" placeholder="https://….workers.dev"></details>
 
-      <h3>캐릭터</h3>
+      <h3 data-k="캐릭터">캐릭터</h3>
       <div id="charPick" class="char-pick"></div>
 
-      <h3>기본</h3>
+      <h3 data-k="기본">기본</h3>
       <label class="field">언어
         <select id="setLang"><option value="ko">한국어</option><option value="en">English</option><option value="ja">日本語</option></select>
       </label>
@@ -87,7 +87,7 @@
       <label class="field">캐릭터 이름 <input id="setName" type="text" maxlength="12" placeholder="시오리"></label>
       <label class="field" title="이 시각 전까지는 전날로 쳐요">하루 시작 <input id="setDayStart" type="time"></label>
 
-      <h3>캐릭터 · 말</h3>
+      <h3 data-k="캐릭터 · 말">캐릭터 · 말</h3>
       <label class="field">캐릭터 크기
         <select id="setCharSize"><option value="L">크게</option><option value="M">보통</option><option value="S">작게</option><option value="off">숨기기</option></select>
       </label>
@@ -98,7 +98,7 @@
       <label class="field">간식 <input id="setSnack" type="time"></label>
       <label class="field">저녁 <input id="setDinner" type="time"></label>
 
-      <h3>알람</h3>
+      <h3 data-k="알람">알람</h3>
       <p class="sub">PC와 같은 알람이에요. 폰 알림은 Scriptable 위젯이 대신 울려 줘요.</p>
       <div id="alarmList" class="alarm-list"></div>
       <form id="alarmAdd" class="add-row" autocomplete="off">
@@ -107,21 +107,21 @@
         <button type="submit">추가</button>
       </form>
 
-      <h3>매일 루틴</h3>
+      <h3 data-k="매일 루틴">매일 루틴</h3>
       <ul id="routineEditor" class="routine-editor"></ul>
       <form id="routineAdd" class="add-row" autocomplete="off">
         <input id="routineInput" type="text" placeholder="루틴 추가 (예: 스트레칭)" aria-label="루틴 추가">
         <button type="submit">추가</button>
       </form>
 
-      <h3>메모</h3>
+      <h3 data-k="메모">메모</h3>
       <button id="exportNotes" class="ghost wide" type="button">메모 전부 TXT로 내보내기</button>
 
-      <h3>아이폰 위젯</h3>
+      <h3 data-k="아이폰 위젯">아이폰 위젯</h3>
       <p class="sub">홈 화면·잠금 화면 위젯과 알림은 Scriptable 앱으로 써요.</p>
       <a class="ghost wide" style="display:block;text-align:center;text-decoration:none" href="../widget/" target="_blank" rel="noopener">위젯 설명서 열기</a>
 
-      <h3>앱으로 쓰기</h3>
+      <h3 data-k="앱으로 쓰기">앱으로 쓰기</h3>
       <p class="sub" id="installHint">아이폰: Safari 공유 버튼 › 홈 화면에 추가. 갤럭시: Chrome 메뉴 › 홈 화면에 추가.</p>
       <div class="row-between"><span class="sub" id="verLabel"></span><button id="checkUpdate" class="pill" type="button">업데이트 확인</button></div>
     </section>
@@ -167,6 +167,7 @@
 <script src="shared/lines/suu_ja.js"></script>
 <script src="shared/i18n.js"></script>
 <script src="shared/logic.js"></script>
+<script src="shared/taskmore.js"></script>
 <script src="shared/sync.js"></script>
 <script src="version.js"></script>
 <script src="app.js"></script>

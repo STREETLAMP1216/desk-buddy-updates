@@ -230,3 +230,28 @@ body.char-off .add-bar { padding-right: 12px; }
 .alarm .del { color: #A94234; width: 34px; padding: 0; }
 .add-row button { white-space: nowrap; flex: none; }
 .task.event.done .text { text-decoration: line-through; color: var(--muted); }
+
+/* sub-items, time, ⋯ panel */
+.task.sub { padding-left: 16px; min-height: 42px; }
+.task.sub .marks { width: 14px; }
+.task .blk-sp { width: 26px; flex: 0 0 auto; text-align: center; color: var(--line); }
+.task.sub.note .text { color: var(--muted); font-size: 15px; }
+.task .when { display: inline-block; font-size: 12px; line-height: 1.5; padding: 0 6px; margin-right: 6px; border-radius: 6px; background: var(--soft); border: 1px solid var(--line); color: var(--mint-deep); vertical-align: 1px; white-space: nowrap; }
+.task .when.at { font-weight: 700; }
+.more-panel { flex-basis: 100%; display: flex; flex-direction: column; gap: 6px; padding-top: 6px; }
+.mp-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.mp-label { width: 34px; color: var(--muted); font-size: 12px; flex: none; }
+.mp-row button { min-width: 40px; height: 34px; border: 1px solid var(--line); background: var(--paper); border-radius: 9px; padding: 0 10px; font-size: 13px; }
+.mp-row button.on { background: var(--mint); border-color: var(--mint-deep); }
+.mp-row input[type=time] { height: 34px; border: 1px solid var(--line); border-radius: 9px; padding: 0 6px; background: #fff; font-size: 14px; }
+.mp-row:not(:has(.mp-label)) { padding-left: 40px; }
+.mp-tilde { color: var(--muted); }
+.mp-add { display: flex; gap: 6px; }
+.mp-add input { flex: 1 1 auto; min-width: 0; height: 40px; border: 1.5px solid var(--ink); border-radius: 10px; padding: 0 10px; font-size: 16px; }
+.mp-add button { height: 40px; border: 1.5px solid var(--ink); border-radius: 10px; background: var(--mint); padding: 0 14px; white-space: nowrap; }
+
+.set-tabs { position: sticky; top: -10px; z-index: 2; display: flex; gap: 6px; overflow-x: auto; padding: 8px 0 10px; margin: -10px 0 4px; background: var(--paper); scrollbar-width: none; }
+.set-tabs::-webkit-scrollbar { display: none; }
+.set-tabs button { flex: none; border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 6px 14px; font-size: 14px; color: var(--muted); }
+.set-tabs button.on { background: var(--mint); border-color: var(--ink); color: var(--ink); font-weight: 700; }
+.set-sec > h3:first-child { margin-top: 8px; }

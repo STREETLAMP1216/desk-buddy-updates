@@ -30,7 +30,7 @@
     let s = String(raw || '').trim();
     const t = { text: '', u: false, star: false, kind: 'task' };
     for (;;) {
-      const m = s.match(/^(u|U|\*|○|o|O|—|-|!|·)(\s+|$)/);
+      const m = s.match(/^(u|U|\*|○|o|O|—|-|!|·|ㄴ)(\s+|$)/);
       if (!m) break;
       const k = m[1];
       if (k === 'u' || k === 'U') t.u = true;
@@ -38,6 +38,7 @@
       else if (k === '○' || k === 'o' || k === 'O') t.kind = 'event';
       else if (k === '—' || k === '-') t.kind = 'note';
       else if (k === '!') t.kind = 'idea';
+      else if (k === 'ㄴ') t.sub = true;              // "ㄴ 내용": goes under the task above
       s = s.slice(m[0].length);
     }
     t.text = s.trim();
@@ -108,7 +109,8 @@
     if (!t || t.status !== 'open') return null;
     const to = addDays(key, 1);
     t.status = 'migrated'; t.to = to;
-    ensureDay(data, to).tasks.push({ ...t, id: t.id + '>', status: 'open', to: undefined, from: key });
+    ensureDay(data, to).tasks.push({ ...t, id: t.id + '>', status: 'open', to: undefined, from: key, parent: undefined });
+    moveKids(day, ensureDay(data, to), t.id, t.id + '>', key, '>');
     return to;
   }
 
@@ -118,7 +120,8 @@
     const t = day.tasks.find(x => x.id === id);
     if (!t || t.status !== 'open' || !toKey || toKey === key) return null;
     t.status = 'scheduled'; t.to = toKey;
-    ensureDay(data, toKey).tasks.push({ ...t, id: t.id + '<', status: 'open', to: undefined, from: key });
+    ensureDay(data, toKey).tasks.push({ ...t, id: t.id + '<', status: 'open', to: undefined, from: key, parent: undefined });
+    moveKids(day, ensureDay(data, toKey), t.id, t.id + '<', key, '<');
     return toKey;
   }
 
@@ -128,7 +131,9 @@
     for (let i = 1; i <= (days || 14); i++) {
       const k = addDays(key, -i), d = data.days && data.days[k];
       if (!d || !d.tasks) continue;
-      d.tasks.forEach(t => { if ((t.kind === 'task' || t.kind === 'event') && t.status === 'open' && !t.dismissed) out.push({ key: k, task: t }); });
+      const openIds = new Set(d.tasks.filter(t => t.status === 'open').map(t => t.id));
+      // a sub-item whose parent is also left over comes along with the parent
+      d.tasks.forEach(t => { if ((t.kind === 'task' || t.kind === 'event') && t.status === 'open' && !t.dismissed && !(t.parent && openIds.has(t.parent))) out.push({ key: k, task: t }); });
     }
     return out;
   }
@@ -138,12 +143,45 @@
     const t = from.tasks.find(x => x.id === id);
     if (!t || t.status !== 'open') return false;
     t.status = 'migrated'; t.to = toKey;
-    ensureDay(data, toKey).tasks.push({ ...t, id: t.id + '>', status: 'open', to: undefined, from: fromKey });
+    ensureDay(data, toKey).tasks.push({ ...t, id: t.id + '>', status: 'open', to: undefined, from: fromKey, parent: undefined });
+    moveKids(from, ensureDay(data, toKey), t.id, t.id + '>', fromKey, '>');
     return true;
   }
   function dropLeftover(data, fromKey, id) {
     const from = ensureDay(data, fromKey);
-    from.tasks = from.tasks.filter(x => x.id !== id);
+    from.tasks = from.tasks.filter(x => x.id !== id && x.parent !== id);
+  }
+  // open sub-items (and memo lines) go along with their task; the open ones stay behind as ">"
+  function moveKids(fromDay, toDay, oldId, newId, fromKey, mark) {
+    fromDay.tasks.filter(c => c.parent === oldId && c.status === 'open').forEach(c => {
+      toDay.tasks.push({ ...c, id: c.id + mark, parent: newId, from: fromKey, to: undefined });
+      if (c.kind === 'task') c.status = mark === '>' ? 'migrated' : 'scheduled';
+    });
+  }
+
+  // ----- sub-items: a task can sit under another (t.parent = id), one level deep -----
+  // [{ t, depth, block }] — sub-items right after their task, in your order; they take the task's block
+  function tree(tasks, custom) {
+    const byId = {}; tasks.forEach(t => { byId[t.id] = t; });
+    const rootOf = (t) => { let r = t, n = 0; while (r.parent && byId[r.parent] && r.parent !== r.id && n++ < 8) r = byId[r.parent]; return r; };
+    const ord = ordered(tasks, custom), kids = {}, top = [];
+    ord.forEach(t => { const r = rootOf(t); if (r === t) top.push(t); else (kids[r.id] = kids[r.id] || []).push(t); });
+    const out = [];
+    top.forEach(p => { out.push({ t: p, depth: 0, block: p.block }); (kids[p.id] || []).forEach(c => out.push({ t: c, depth: 1, block: p.block })); });
+    return out;
+  }
+  function kidsOf(tasks, id) { return tasks.filter(t => t.parent === id); }
+  // how long / when: "30분", "1시간 30분", "14:00–15:30"
+  const DUR = { ko: [(h) => h + '시간', (m) => m + '분'], en: [(h) => h + 'h', (m) => m + 'm'], ja: [(h) => h + '時間', (m) => m + '分'] };
+  function durText(min, lang) {
+    const f = DUR[lang] || DUR.ko, h = Math.floor(min / 60), m = min % 60;
+    return [h ? f[0](h) : '', m ? f[1](m) : ''].filter(Boolean).join(lang === 'en' ? ' ' : ' ');
+  }
+  function whenText(t, lang) {
+    if (t.time && t.end) return `${t.time}–${t.end}`;
+    if (t.time) return t.time;
+    if (t.dur) return durText(t.dur, lang);
+    return '';
   }
 
   function toggleDone(day, id) {
@@ -164,7 +202,8 @@
   function line(t) {
     const marks = (t.u ? 'u ' : '') + (t.star ? '* ' : '');
     const to = t.status === 'scheduled' && t.to ? ` → ${t.to.slice(5).replace('-', '/').replace(/^0/, '').replace('/0', '/')}` : '';
-    return `${marks}${glyph(t)}  ${t.text}${to}`;
+    const when = whenText(t);
+    return `${marks}${glyph(t)}  ${when ? when + ' ' : ''}${t.text}${to}`;
   }
   function toPlainText(data, key, words) {
     const w = words || { routines: '[매일 루틴]', today: '[오늘]' };
@@ -172,7 +211,7 @@
     const out = [label(key), '', w.routines];
     routinesFor(key, data.settings && data.settings.routines).forEach(r => out.push(`${day.routines[r.id] ? 'X' : '·'}  ${r.label}`));
     out.push('', w.today);
-    ordered(day.tasks, day.customOrder).forEach(t => out.push(line(t)));
+    tree(day.tasks, day.customOrder).forEach(({ t, depth }) => out.push((depth ? '    ' : '') + line(t)));
     return out.join('\n');
   }
 
@@ -264,6 +303,6 @@
     return { render, done, strain };
   }
 
-  const api = { dateKey, dayKey, leftovers, carryOver, dropLeftover, addDays, label, minutes, parseInput, newTask, ensureDay, routinesFor, newRoutine, DEFAULT_ROUTINES, WEEK, setWeek, weatherText, umbrella, sysState, ordered, counts, suggest, migrate, schedule, toggleDone, glyph, line, toPlainText, slot, inWindow, workHours, pose, isOpen };
+  const api = { dateKey, dayKey, leftovers, carryOver, dropLeftover, tree, kidsOf, durText, whenText, addDays, label, minutes, parseInput, newTask, ensureDay, routinesFor, newRoutine, DEFAULT_ROUTINES, WEEK, setWeek, weatherText, umbrella, sysState, ordered, counts, suggest, migrate, schedule, toggleDone, glyph, line, toPlainText, slot, inWindow, workHours, pose, isOpen };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Logic = api;
 })(typeof window !== 'undefined' ? window : globalThis);
