@@ -89,6 +89,8 @@
   function say(text, opts) {
     opts = opts || {};
     if (!text) return;
+    // quiet: only questions and what you asked for (tapping her) get a bubble
+    if (data.settings.mChatter === 'quiet' && !(opts.buttons && opts.buttons.length) && !opts.force) return;
     const kind = opts.kind;
     $('bubbleText').textContent = text;
     const face = kind && MOOD[kind] ? `face_${MOOD[kind]}` : null;
@@ -111,8 +113,8 @@
     if (!$('bubble').hidden && $('bubbleButtons').children.length) return;
     hop();
     const t = L.suggest(today());
-    if (t && Math.random() < 0.6) sayKind('nudge', { task: t.text });
-    else sayKind('poke');
+    if (t && Math.random() < 0.6) sayKind('nudge', { task: t.text }, { force: true });
+    else sayKind('poke', null, { force: true });
   });
 
   // first time today / coming back: one line that fits the hour
@@ -285,8 +287,8 @@
     bk.addEventListener('click', () => toggleActs(t.id));
     li.appendChild(bk);
     const g = mk('button', 'glyph' + (t.status === 'done' ? ' done' : ''), L.glyph(t));
-    g.disabled = !(t.kind === 'task' && (t.status === 'open' || t.status === 'done'));
-    g.addEventListener('click', () => { const st = L.toggleDone(today(), t.id); persist(); renderToday(); if (st === 'done') praise(); });
+    g.disabled = !((t.kind === 'task' || t.kind === 'event') && (t.status === 'open' || t.status === 'done'));
+    g.addEventListener('click', () => { const st = L.toggleDone(today(), t.id); persist(); renderToday(); if (st === 'done') { if (t.kind === 'task') praise(); else hop(); } });
     li.appendChild(g);
     const tx = mk('span', 'text');
     if (t.time) tx.appendChild(mk('span', 'time', t.time));
@@ -483,6 +485,11 @@
   }
   function fillSettings() {
     $('setLang').value = LANG;
+    $('setName').value = (data.settings.names || {})[CH.id] || ''; $('setName').placeholder = charName(CH);
+    $('setCharSize').value = data.settings.mCharSize || 'M';
+    $('setChatter').value = data.settings.mChatter || 'normal';
+    $('setLunch').value = data.settings.lunch || '12:30'; $('setSnack').value = data.settings.snack || '15:30'; $('setDinner').value = data.settings.dinner || '18:30';
+    renderAlarms();
     $('setCallMe').value = data.settings.callMe || '';
     $('setCallMeName').value = data.settings.callMeName || '';
     $('callMeNameRow').hidden = data.settings.callMe !== 'custom';
@@ -494,6 +501,65 @@
   $('setLang').addEventListener('change', () => { data.settings.lang = $('setLang').value; persist(); location.reload(); });
   $('setCallMe').addEventListener('change', () => { data.settings.callMe = $('setCallMe').value; $('callMeNameRow').hidden = data.settings.callMe !== 'custom'; persist(); });
   $('setCallMeName').addEventListener('change', () => { data.settings.callMeName = $('setCallMeName').value.trim(); persist(); });
+  $('setName').addEventListener('change', () => { data.settings.names = data.settings.names || {}; const v = $('setName').value.trim(); if (v) data.settings.names[CH.id] = v; else delete data.settings.names[CH.id]; persist(); renderCharPick(); });
+  $('setCharSize').addEventListener('change', () => { data.settings.mCharSize = $('setCharSize').value; saveLocal(); applyCharSize(); });
+  $('setChatter').addEventListener('change', () => { data.settings.mChatter = $('setChatter').value; saveLocal(); });
+  [['setLunch', 'lunch'], ['setSnack', 'snack'], ['setDinner', 'dinner']].forEach(([id, k]) => $(id).addEventListener('change', () => { if ($(id).value) { data.settings[k] = $(id).value; persist(); renderBuddy(); } }));
+  function applyCharSize() { const v = data.settings.mCharSize || 'M'; ['L', 'M', 'S', 'off'].forEach(x => document.body.classList.toggle('char-' + x, x === v)); }
+
+  // alarms: the same list as the PC (they ring on the PC, and as phone notifications through the Scriptable widget)
+  const alarms = () => data.settings.alarms || (data.settings.alarms = []);
+  function renderAlarms() {
+    const box = $('alarmList'); box.innerHTML = '';
+    if (!alarms().length) box.appendChild(mk('p', 'sub', T('알람이 없어요.')));
+    alarms().slice().sort((a, b) => a.time.localeCompare(b.time)).forEach(a => {
+      const row = mk('div', 'alarm' + (a.on ? '' : ' off'));
+      row.appendChild(mk('span', 't', a.time)); row.appendChild(mk('span', 'l', a.label || T('알람')));
+      const rep = mk('button', a.repeat ? 'on' : '', T('매일')); rep.addEventListener('click', () => { a.repeat = !a.repeat; persist(); renderAlarms(); });
+      const on = mk('button', a.on ? 'on' : '', a.on ? T('켜짐') : T('꺼짐')); on.addEventListener('click', () => { a.on = !a.on; persist(); renderAlarms(); });
+      const del = mk('button', 'del', '✕'); del.setAttribute('aria-label', T('지우기')); del.addEventListener('click', () => { data.settings.alarms = alarms().filter(x => x !== a); persist(); renderAlarms(); });
+      row.append(rep, on, del); box.appendChild(row);
+    });
+  }
+  $('alarmAdd').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const t = $('alarmTime').value; if (!t) return;
+    alarms().push({ id: 'a' + Date.now().toString(36), time: t, label: $('alarmLabel').value.trim(), on: true, repeat: false });
+    $('alarmLabel').value = ''; persist(); renderAlarms();
+  });
+
+  // memos out as a text file (the share sheet on the phone: save to Files, send, …)
+  $('exportNotes').addEventListener('click', async () => {
+    const list = notes().filter(n => (n.text || '').trim()).sort((a, b) => (b.updated || 0) - (a.updated || 0));
+    if (!list.length) return;
+    const text = list.map(n => n.text).join('\n\n---\n\n'), name = `${T('책상 친구 메모')} ${L.dateKey(new Date())}.txt`;
+    const file = new File(['\ufeff' + text], name, { type: 'text/plain' });
+    try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+  // today in notebook symbols, ready to paste
+  $('copyBtn').addEventListener('click', async () => {
+    const text = L.toPlainText(data, ui.key, { routines: T('[매일 루틴]'), today: T('[오늘]') });
+    try { await navigator.clipboard.writeText(text); say(T('복사했어. 수첩에 옮겨 적어줘.'), { force: true }); } catch (e) { say(text, { force: true }); }
+  });
+
+  // updates: the app checks for a newer version and offers to switch
+  async function checkVersion(manual) {
+    try {
+      const r = await fetch('version.js?' + Date.now(), { cache: 'no-store' });
+      const v = ((await r.text()).match(/'([^']+)'/) || [])[1];
+      if (v && window.MOBILE_VERSION && v !== window.MOBILE_VERSION) {
+        if (ui.updOffered && !manual) return; ui.updOffered = true;
+        say(T('새 버전이 나왔어. 지금 바꿀까?'), { buttons: [{ label: T('바꾸기'), primary: true, run: updateNow }, { label: T('나중에') }] });
+      } else if (manual) say(T('지금이 최신 버전이야.'), { force: true });
+    } catch (e) { if (manual) say(T('업데이트를 확인하지 못했어. 인터넷 연결을 봐 줘.'), { force: true }); }
+  }
+  async function updateNow() {
+    try { const regs = navigator.serviceWorker ? await navigator.serviceWorker.getRegistrations() : []; for (const r of regs) await r.update(); const ks = await caches.keys(); await Promise.all(ks.map(k => caches.delete(k))); } catch (e) {}
+    location.reload();
+  }
+  $('checkUpdate').addEventListener('click', () => checkVersion(true));
+
   $('setDayStart').addEventListener('change', () => { data.settings.dayStart = $('setDayStart').value || '04:00'; persist(); refreshDay(); });
   function renderRoutineEditor() {
     const ul = $('routineEditor'); ul.innerHTML = '';
@@ -626,6 +692,15 @@
   showView('today');
   renderBuddy(); blinkLoop();
   setInterval(() => refreshDay(), 60000);
+  applyCharSize();
+  // chatty: a word now and then while the app is open
+  setInterval(() => {
+    if (data.settings.mChatter !== 'chatty' || document.visibilityState !== 'visible' || !$('bubble').hidden || editing) return;
+    const t = L.suggest(today()); const h = new Date().getHours();
+    if (t && Math.random() < 0.6) sayKind('nudge', { task: t.text }); else sayKind(h < 11 ? 'morning' : h >= 22 || h < 4 ? 'night' : h >= 18 ? 'evening' : 'idle');
+  }, 4 * 60000);
+  setTimeout(() => checkVersion(false), 4000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkVersion(false); });
   startSync();
   greet();
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});

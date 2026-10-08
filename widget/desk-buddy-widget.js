@@ -3,10 +3,14 @@
 // icon-color: deep-green; icon-glyph: book-open;
 
 // 책상 친구 — 아이폰 위젯 (Scriptable)
-// · 홈 화면 위젯: 지금 블럭, 남은 할 일, 다음 일정
-// · 알림: 오늘·내일 일정 10분 전, PC에서 맞춘 알람 시각
-// 처음 한 번 Scriptable 앱 안에서 실행하면 연동 코드를 물어봐요 (PC 설정 › 폰 연동의 코드).
-// 코드를 바꾸려면 앱 안에서 다시 실행 › "코드 바꾸기".
+// 홈 화면(작게·중간·크게)과 잠금 화면 위젯. PC 카드처럼 보여줄 칸을 골라 조합할 수 있어요.
+//
+// 처음: Scriptable 앱 안에서 ▶ 실행 → 연동 코드 입력 (PC 설정 › 폰 연동의 16자리)
+// 꾸미기: 앱 안에서 다시 실행 › "위젯 꾸미기" → 칸을 고르면 조합 글자가 복사돼요.
+//         홈 화면 위젯을 길게 눌러 › 위젯 편집 › Parameter 에 붙여 넣기.
+// Parameter 예: 큰캐릭터, 말, 지금블럭      /  블럭, 할일, 일정      /  작은캐릭터, 진행, u
+//   칸: 캐릭터(큰캐릭터·작은캐릭터) 말 날짜 시간 진행 블럭 지금블럭 할일 u 루틴 일정 메모
+//   비워 두면 크기에 맞는 기본 조합.
 
 const SERVER = 'https://desk-buddy-sync.soohwanj97.workers.dev';
 const APP = 'https://streetlamp1216.github.io/desk-buddy-updates/app/';
@@ -15,10 +19,16 @@ const EVENT_LEAD_MIN = 10;      // 일정 몇 분 전에 알려줄지
 const KEY_NAME = 'desk-buddy-sync-code';
 
 const THEMES = {
-  shiori: { name: '시오리', mint: '#A8DCC6', deep: '#4E8A6B', soft: '#F2F7F4', line: '#D6DED9' },
-  fubuki: { name: '후부키', mint: '#EBDB9C', deep: '#8A7224', soft: '#FAF6E8', line: '#E5DDC4' },
-  suu: { name: '수우', mint: '#AAC7E7', deep: '#3E679A', soft: '#F0F4FA', line: '#D3DCE8' }
+  shiori: { name: '시오리', names: { en: 'Shiori', ja: 'しおり' }, mint: '#A8DCC6', deep: '#4E8A6B', soft: '#F2F7F4', line: '#D6DED9' },
+  fubuki: { name: '후부키', names: { en: 'Fubuki', ja: 'ふぶき' }, mint: '#EBDB9C', deep: '#8A7224', soft: '#FAF6E8', line: '#E5DDC4' },
+  suu: { name: '수우', names: { en: 'Suu', ja: 'すう' }, mint: '#AAC7E7', deep: '#3E679A', soft: '#F0F4FA', line: '#D3DCE8' }
 };
+const WORDS = {
+  ko: { block: '블럭', left: '남은 거', allDone: '오늘 할 일 다 끝냈어 X', none: '아직 적은 게 없어', next: '다음', noEvent: '남은 일정 없음', noMemo: '메모 없음', noU: 'u 할 일 없음', today: '오늘', more: '그 외 {n}개', routine: '루틴' },
+  en: { block: 'Block', left: 'left', allDone: 'All done today X', none: 'Nothing written yet', next: 'Next', noEvent: 'No more events', noMemo: 'No memos', noU: 'No u tasks', today: 'Today', more: '{n} more', routine: 'Routine' },
+  ja: { block: 'ブロック', left: '残り', allDone: '今日のタスク全部終わった X', none: 'まだ何もないよ', next: '次', noEvent: '残りの予定なし', noMemo: 'メモなし', noU: 'u タスクなし', today: '今日', more: 'ほか {n}件', routine: 'ルーティン' }
+};
+const WEEK = { ko: ['일', '월', '화', '수', '목', '금', '토'], en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], ja: ['日', '月', '火', '水', '木', '金', '土'] };
 
 // ======================= crypto (no WebCrypto in Scriptable) =======================
 const Crypto = (() => {
@@ -128,7 +138,8 @@ const pad = (n) => String(n).padStart(2, '0');
 const dateKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 function dayKey(d, start) { const [h, m] = String(start || '04:00').split(':').map(Number); return dateKey(new Date(d.getTime() - (h * 60 + (m || 0)) * 60000)); }
 function addDays(key, n) { const [y, m, d] = key.split('-').map(Number); return dateKey(new Date(y, m - 1, d + n)); }
-const glyph = (t) => (t.kind === 'event' ? '○' : t.kind === 'note' ? '—' : t.kind === 'idea' ? '!' : { open: '·', done: 'X', migrated: '>', scheduled: '<' }[t.status] || '·');
+const glyph = (t) => (t.kind === 'event' ? (t.status === 'done' ? 'X' : '○') : t.kind === 'note' ? '—' : t.kind === 'idea' ? '!' : { open: '·', done: 'X', migrated: '>', scheduled: '<' }[t.status] || '·');
+const DEFAULT_ROUTINES = [{ id: 'ledger', label: '가계부', days: [0, 1, 2, 3, 4, 5, 6] }, { id: 'diary', label: '일기', days: [0, 1, 2, 3, 4, 5, 6] }, { id: 'exercise', label: '운동', days: [1, 2, 3, 4, 5, 6] }];
 
 function readDay(e, key) {
   const val = (k) => (e[k] && e[k].v !== null ? e[k].v : undefined);
@@ -138,9 +149,36 @@ function readDay(e, key) {
   tasks.sort((a, b) => (a.id in pos ? pos[a.id] : 1e9) - (b.id in pos ? pos[b.id] : 1e9));
   const ordered = val(`c|${key}`) ? tasks : tasks.map((t, i) => ({ t, i })).sort((a, b) => (a.t.u === b.t.u ? a.i - b.i : a.t.u ? -1 : 1)).map(x => x.t);
   const [y, m, d] = key.split('-').map(Number), dow = new Date(y, m - 1, d).getDay();
-  const routines = (val('s|routines') || [{ id: 'ledger', label: '가계부', days: [0, 1, 2, 3, 4, 5, 6] }, { id: 'diary', label: '일기', days: [0, 1, 2, 3, 4, 5, 6] }, { id: 'exercise', label: '운동', days: [1, 2, 3, 4, 5, 6] }])
-    .filter(r => (r.days || []).includes(dow)).map(r => ({ ...r, done: !!val(`r|${key}|${r.id}`) }));
+  const routines = (val('s|routines') || DEFAULT_ROUTINES).filter(r => (r.days || []).includes(dow)).map(r => ({ ...r, done: !!val(`r|${key}|${r.id}`) }));
   return { tasks: ordered, routines, block: val(`b|${key}`) || 1 };
+}
+
+// everything a widget might show, worked out once
+function model(e, now) {
+  const val = (k) => (e[k] && e[k].v !== null ? e[k].v : undefined);
+  const ch = THEMES[val('s|character')] ? val('s|character') : 'shiori';
+  const lang = ['ko', 'en', 'ja'].includes(val('s|lang')) ? val('s|lang') : 'ko';
+  const key = dayKey(now, val('s|dayStart'));
+  const day = readDay(e, key);
+  const tasks = day.tasks.filter(t => t.kind === 'task');
+  const done = tasks.filter(t => t.status === 'done').length + day.routines.filter(r => r.done).length;
+  const total = tasks.filter(t => t.status === 'open' || t.status === 'done').length + day.routines.length;
+  const open = day.routines.filter(r => !r.done).map(r => ({ text: r.label, block: r.block, routine: true, kind: 'task', status: 'open' }))
+    .concat(day.tasks.filter(t => (t.kind === 'task' || t.kind === 'event') && t.status === 'open'));
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const events = day.tasks.filter(t => t.kind === 'event' && t.status === 'open')
+    .sort((a, b) => (a.time || '99').localeCompare(b.time || '99'))
+    .filter(t => !t.time || (() => { const [h, m] = t.time.split(':').map(Number); return h * 60 + m >= nowMin - 30; })());
+  const tomorrow = readDay(e, addDays(key, 1)).tasks.filter(t => t.kind === 'event' && t.status === 'open').sort((a, b) => (a.time || '99').localeCompare(b.time || '99'));
+  const notesAll = Object.keys(e).filter(k => k.startsWith('n|') && e[k].v !== null).map(k => e[k].v).filter(n => (n.text || '').trim());
+  const npos = {}; (val('o|notes') || []).forEach((id, i) => { npos[id] = i; });
+  notesAll.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (a.id in npos ? npos[a.id] : 1e9) - (b.id in npos ? npos[b.id] : 1e9));
+  const blocks = [1, 2, 3, 4, 5, 6].map(n => day.routines.filter(r => r.block === n).map(r => (r.done ? 'X' : '·'))
+    .concat(day.tasks.filter(t => t.block === n && (t.kind === 'task' || t.kind === 'event')).map(glyph)));
+  const who = ((val('s|names') || {})[ch]) || (lang !== 'ko' && THEMES[ch].names[lang]) || THEMES[ch].name;
+  return { ch, lang, th: THEMES[ch], W: WORDS[lang], key, day, done, total, open, events, tomorrow, notes: notesAll, blocks, who,
+    current: open.filter(x => x.block === day.block), us: open.filter(x => x.u), routines: day.routines,
+    callMe: val('s|callMe'), callMeName: val('s|callMeName'), meals: { lunch: val('s|lunch') || '12:30', dinner: val('s|dinner') || '18:30', snack: val('s|snack') || '15:30' } };
 }
 
 async function fetchEntries(code) {
@@ -152,107 +190,327 @@ async function fetchEntries(code) {
   return Crypto.open(key, got.blob).e || {};
 }
 const fm = FileManager.local();
-const cachePath = fm.joinPath(fm.cacheDirectory(), 'desk-buddy-entries.json');
+const cache = (name) => fm.joinPath(fm.cacheDirectory(), name);
 async function load(code) {
-  try { const e = await fetchEntries(code); if (e) fm.writeString(cachePath, JSON.stringify({ at: Date.now(), e })); return { e, at: Date.now(), live: true }; }
-  catch (err) { if (fm.fileExists(cachePath)) { const c = JSON.parse(fm.readString(cachePath)); return { e: c.e, at: c.at, live: false }; } throw err; }
+  try { const e = await fetchEntries(code); if (e) fm.writeString(cache('desk-buddy-entries.json'), JSON.stringify({ at: Date.now(), e })); return { e, at: Date.now(), live: true }; }
+  catch (err) { const p = cache('desk-buddy-entries.json'); if (fm.fileExists(p)) { const c = JSON.parse(fm.readString(p)); return { e: c.e, at: c.at, live: false }; } throw err; }
 }
-async function icon(ch) {
-  const p = fm.joinPath(fm.cacheDirectory(), `desk-buddy-icon-${ch}.png`);
-  if (fm.fileExists(p)) return fm.readImage(p);
-  try { const img = await new Request(`${APP}shared/assets/icon_${ch}.png`).loadImage(); fm.writeImage(p, img); return img; } catch (e) { return null; }
+// drawings and lines come from the phone app's files (kept for a day)
+async function image(path) {
+  const p = cache('db-' + path.replace(/\//g, '_'));
+  if (fm.fileExists(p) && Date.now() - fm.modificationDate(p).getTime() < 7 * 86400000) return fm.readImage(p);
+  try { const img = await new Request(APP + path).loadImage(); fm.writeImage(p, img); return img; } catch (e) { return fm.fileExists(p) ? fm.readImage(p) : null; }
+}
+async function lineBank(ch, lang) {
+  const file = lang === 'ko' ? { shiori: 'lines.js', fubuki: 'lines_fubuki.js', suu: 'lines_suu.js' }[ch] : `lines/${ch}_${lang}.js`;
+  const p = cache('db-lines-' + file.replace(/\//g, '_'));
+  let code = null;
+  if (fm.fileExists(p) && Date.now() - fm.modificationDate(p).getTime() < 86400000) code = fm.readString(p);
+  else { try { code = await new Request(APP + 'shared/' + file).loadString(); fm.writeString(p, code); } catch (e) { if (fm.fileExists(p)) code = fm.readString(p); } }
+  if (!code) return {};
+  try { const win = {}; new Function('window', 'globalThis', 'module', code)(win, win, undefined); return (win.LineBanks || {})[`${ch}:${lang}`] || {}; } catch (e) { return {}; }
+}
+
+// what she'd say right now, and which drawing goes with it
+function situation(m, now) {
+  const min = now.getHours() * 60 + now.getMinutes();
+  const near = (hhmm, before, after) => { const [h, mm] = hhmm.split(':').map(Number); const t = h * 60 + mm; return min >= t - before && min <= t + after; };
+  if (min >= 23 * 60 || min < 5 * 60) return { kind: 'night', pose: 'pajama' };
+  if (m.total && !m.open.length) return { kind: 'praiseAll', pose: 'done' };
+  if (near(m.meals.lunch, 15, 45) || near(m.meals.dinner, 15, 45)) return { kind: near(m.meals.lunch, 15, 45) ? 'lunch' : 'dinner', pose: 'meal' };
+  if (near(m.meals.snack, 10, 25)) return { kind: 'snack', pose: 'snack' };
+  if (min < 10 * 60) return { kind: 'morning', pose: 'morning' };
+  if (m.open.length) return { kind: 'nudge', pose: 'memo_open' };
+  return { kind: min >= 18 * 60 ? 'evening' : 'nudgeEmpty', pose: 'memo_open' };
+}
+function speak(bank, kind, m) {
+  const pool = bank[kind] || [];
+  if (!pool.length) return '';
+  const pick = pool[Math.floor(Date.now() / (15 * 60000)) % pool.length];           // changes every 15 minutes
+  const next = (m.current[0] || m.open[0] || {}).text || '';
+  let s = pick;
+  Object.entries({ task: next, count: m.done, left: m.open.length, name: m.who }).forEach(([k, v]) => { s = s.split('{' + k + '}').join(String(v)); });
+  return s.replace(/\{\w+\}/g, '').trim();
+}
+
+// ======================= widget parts =======================
+const INK = '#1E1E1E', MUTED = '#5B6670', RED = '#C0392B';
+const C = (hex) => new Color(hex);
+const ALIASES = {
+  캐릭터: 'char', 큰캐릭터: 'charBig', 캐릭터크게: 'charBig', 작은캐릭터: 'charSmall', 캐릭터작게: 'charSmall', 말: 'talk', 말풍선: 'talk',
+  날짜: 'date', 시간: 'time', 시계: 'time', 진행: 'progress', 블럭: 'blocks', 블록: 'blocks', 지금블럭: 'now', 현재블럭: 'now', 할일: 'tasks',
+  u: 'u', U: 'u', 루틴: 'routines', 일정: 'events', 메모: 'memo',
+  char: 'char', big: 'charBig', small: 'charSmall', talk: 'talk', date: 'date', time: 'time', progress: 'progress', blocks: 'blocks', now: 'now',
+  tasks: 'tasks', routines: 'routines', events: 'events', memo: 'memo'
+};
+const DEFAULTS = {
+  small: 'charSmall,progress,now',
+  medium: 'charBig,talk,now',
+  large: 'charBig,talk,blocks,tasks,events,memo',
+  extraLarge: 'charBig,talk,blocks,tasks,events,memo'
+};
+function parseParam(p, family) {
+  const toks = String(p || '').split(/[,\s+·/]+/).map(s => s.trim()).filter(Boolean).map(s => ALIASES[s] || ALIASES[s.toLowerCase()]).filter(Boolean);
+  const list = toks.length ? toks : DEFAULTS[family].split(',');
+  const charMode = list.includes('charBig') ? 'big' : list.includes('charSmall') || list.includes('char') ? 'small' : null;
+  return { charMode, talk: list.includes('talk'), parts: list.filter(x => !['char', 'charBig', 'charSmall', 'talk'].includes(x)) };
+}
+
+function txt(stack, s, size, color, opts) {
+  const t = stack.addText(s);
+  t.font = opts && opts.bold ? Font.boldSystemFont(size) : opts && opts.mono ? Font.semiboldMonospacedSystemFont(size) : Font.systemFont(size);
+  t.textColor = C(color); if (opts && opts.lines) t.lineLimit = opts.lines; if (opts && opts.min) t.minimumScaleFactor = opts.min;
+  return t;
+}
+function headLine(stack, m, fs) {
+  const row = stack.addStack(); row.centerAlignContent();
+  txt(row, `${m.W.block} ${m.day.block}`, fs, m.th.deep, { bold: true });
+  row.addSpacer();
+  txt(row, m.total ? `${m.done}/${m.total}` : '–', fs - 1, m.total && m.done === m.total ? RED : INK, { mono: true });
+}
+function progress(stack, m, width) {
+  const bar = stack.addStack(); bar.size = new Size(width, 6); bar.backgroundColor = C(m.th.line); bar.cornerRadius = 3;
+  const f = m.total ? m.done / m.total : 0;
+  if (f > 0) { const fill = bar.addStack(); fill.size = new Size(Math.max(6, width * f), 6); fill.backgroundColor = C(m.th.deep); fill.cornerRadius = 3; }
+  bar.addSpacer();
+}
+function itemRow(stack, x, m, fs, dimOther) {
+  const row = stack.addStack(); row.centerAlignContent(); row.spacing = 4;
+  const g = txt(row, x.routine ? '·' : glyph(x), fs + 1, x.routine ? m.th.deep : INK, { bold: true });
+  g.font = Font.boldSystemFont(fs + 1);
+  const mk = (x.u ? 'u ' : '') + (x.star ? '* ' : '');
+  const color = x.routine ? m.th.deep : dimOther && x.block !== m.day.block ? MUTED : INK;
+  txt(row, `${mk}${x.time ? x.time + ' ' : ''}${x.text}`, fs, color, { lines: 1 });
+}
+function list(stack, items, m, fs, max, empty, dimOther) {
+  if (!items.length) { txt(stack, empty, fs - 1, MUTED, { lines: 1 }); return 1; }
+  const shown = items.slice(0, max);
+  shown.forEach(x => itemRow(stack, x, m, fs, dimOther));
+  if (items.length > shown.length && max > 2) txt(stack, m.W.more.replace('{n}', items.length - shown.length), fs - 2, MUTED);
+  return shown.length + (items.length > shown.length ? 1 : 0);
+}
+function blockGrid(stack, m, width) {
+  const row = stack.addStack(); row.spacing = 3;
+  const cw = Math.floor((width - 15) / 6);
+  m.blocks.forEach((gs, i) => {
+    const n = i + 1, cell = row.addStack(); cell.layoutVertically(); cell.size = new Size(cw, 30); cell.cornerRadius = 6;
+    cell.borderWidth = n === m.day.block ? 1.5 : 0.5; cell.borderColor = C(n === m.day.block ? m.th.deep : m.th.line);
+    cell.backgroundColor = C(n === m.day.block ? m.th.soft : '#FFFFFF'); cell.setPadding(2, 2, 2, 2);
+    const top = cell.addStack(); top.addSpacer(); txt(top, String(n), 9, n === m.day.block ? m.th.deep : MUTED, { bold: true }); top.addSpacer();
+    const bot = cell.addStack(); bot.addSpacer();
+    const s = gs.slice(0, 3).join('') + (gs.length > 3 ? '…' : '');
+    const t = txt(bot, s || ' ', 10, INK, { mono: true }); t.lineLimit = 1; t.minimumScaleFactor = 0.6;
+    bot.addSpacer();
+    if (n < m.day.block) cell.backgroundColor = C('#FAFAFA');
+  });
+}
+function bubble(stack, text, m, fs, lines) {
+  const b = stack.addStack(); b.backgroundColor = C('#FFFFFF'); b.cornerRadius = 10; b.borderWidth = 1; b.borderColor = C(INK);
+  b.setPadding(5, 8, 5, 8);
+  txt(b, text, fs, INK, { lines, min: 0.75 });
+  return b;
+}
+function sectionTitle(stack, s, m) { txt(stack, s, 10, m.th.deep, { bold: true }); }
+
+// lays out the chosen parts in a column of the given width; `budget` = how many lines fit
+function parts(col, cfg, m0, width, budget, fs, family) {
+  let used = 0;
+  // events get their own section when it's shown, so the task lists leave them out
+  const m = cfg.parts.includes('events') ? { ...m0, open: m0.open.filter(x => x.kind !== 'event'), current: m0.current.filter(x => x.kind !== 'event'), us: m0.us.filter(x => x.kind !== 'event') } : m0;
+  const room = () => budget - used;
+  for (const p of cfg.parts) {
+    if (room() <= 0) break;
+    if (used) col.addSpacer(family === 'small' ? 3 : 5);
+    if (p === 'date') {
+      const r = col.addStack(); r.centerAlignContent();
+      const now = new Date();
+      txt(r, `${now.getMonth() + 1}/${now.getDate()} (${WEEK[m.lang][now.getDay()]})`, fs + 2, INK, { bold: true });
+      used += 1;
+    } else if (p === 'time') {
+      const d = col.addDate(new Date()); d.applyTimeStyle(); d.font = Font.boldMonospacedSystemFont(fs + 6); d.textColor = C(INK); used += 2;
+    } else if (p === 'progress') {
+      headLine(col, m, fs); col.addSpacer(3); progress(col, m, width); used += 1.5;
+    } else if (p === 'blocks') {
+      blockGrid(col, m, width); used += 2.3;
+    } else if (p === 'now') {
+      if (!cfg.parts.includes('progress')) { headLine(col, m, fs); col.addSpacer(2); used += 1; }
+      used += list(col, m.current.length ? m.current : m.open, m, fs, Math.max(1, Math.floor(room())), m.total ? m.W.allDone : m.W.none, true);
+    } else if (p === 'tasks') {
+      if (!cfg.parts.includes('progress') && !cfg.parts.includes('now')) { headLine(col, m, fs); col.addSpacer(2); used += 1; }
+      const rest = cfg.parts.includes('now') ? m.open.filter(x => x.block !== m.day.block) : m.current.concat(m.open.filter(x => x.block !== m.day.block));
+      if (cfg.parts.includes('now') && !rest.length) continue;
+      used += list(col, rest, m, fs, Math.max(1, Math.floor(room())), m.total ? m.W.allDone : m.W.none, true);
+    } else if (p === 'u') {
+      sectionTitle(col, 'u', m); used += 0.7;
+      used += list(col, m.us, m, fs, Math.max(1, Math.floor(room())), m.W.noU);
+    } else if (p === 'routines') {
+      sectionTitle(col, m.W.routine, m); used += 0.7;
+      const rs = m.routines.map(r => ({ text: r.label, routine: !r.done, kind: 'task', status: r.done ? 'done' : 'open', block: r.block }));
+      used += list(col, rs, m, fs, Math.max(1, Math.floor(room())), '–');
+    } else if (p === 'events') {
+      const evs = m.events.length ? m.events : m.tomorrow.map(t => ({ ...t, text: t.text + ' (+1)' }));
+      if (!evs.length) { txt(col, '○ ' + m.W.noEvent, fs - 1, MUTED, { lines: 1 }); used += 1; continue; }
+      evs.slice(0, Math.max(1, Math.floor(room()))).forEach(t => {
+        const r = col.addStack(); r.spacing = 5;
+        txt(r, '○', fs, m.th.deep, { bold: true }); if (t.time) txt(r, t.time, fs, m.th.deep, { bold: true }); txt(r, t.text, fs, INK, { lines: 1 });
+        used += 1;
+      });
+    } else if (p === 'memo') {
+      if (!m.notes.length) { txt(col, m.W.noMemo, fs - 1, MUTED); used += 1; continue; }
+      m.notes.slice(0, Math.max(1, Math.floor(room()))).forEach(n => {
+        const r = col.addStack(); r.spacing = 5;
+        txt(r, n.pinned ? '📌' : '—', fs - 1, m.th.deep);
+        txt(r, (n.text || '').split('\n').find(s => s.trim()).trim(), fs, INK, { lines: 1 });
+        used += 1;
+      });
+    }
+  }
+}
+
+const SIZES = { small: [158, 158], medium: [338, 158], large: [338, 354], extraLarge: [715, 354] };
+async function buildHome(m, info, family, param) {
+  const cfg = parseParam(param, family);
+  const [Wd, Ht] = SIZES[family] || SIZES.medium;
+  const w = new ListWidget();
+  w.backgroundColor = C(m.th.soft); w.url = APP;
+  w.refreshAfterDate = new Date(Date.now() + 15 * 60000);
+  const padX = family === 'small' ? 12 : 14;
+  w.setPadding(family === 'small' ? 12 : 12, padX, 10, padX);
+  const now = new Date(), sit = situation(m, now);
+  const bank = cfg.talk ? await lineBank(m.ch, m.lang) : null;
+  const line = cfg.talk ? speak(bank, sit.kind, m) : '';
+  const pose = cfg.charMode === 'big' ? await image(`shared/assets/${m.ch}/${sit.pose}.png`) || await image(`shared/assets/${m.ch}/memo_open.png`) : null;
+  const face = cfg.charMode === 'small' ? await image(`shared/assets/icon_${m.ch}.png`) : null;
+  const fs = family === 'small' ? 12 : 13;
+  const innerW = Wd - 2 * padX;
+
+  if (family === 'small') {
+    // small: a little face + the parts, or the full drawing with a line underneath
+    if (cfg.charMode === 'big') {
+      const top = w.addStack(); top.addSpacer();
+      if (pose) { const im = top.addImage(pose); im.imageSize = new Size(cfg.talk ? 84 : 110, cfg.talk ? 84 : 110); }
+      top.addSpacer();
+      if (cfg.talk && line) { w.addSpacer(4); bubble(w, line, m, 11, 2); }
+      else if (cfg.parts.length) { w.addSpacer(4); parts(w, { parts: cfg.parts.slice(0, 1) }, m, innerW, 1.5, fs, family); }
+    } else {
+      if (face || cfg.talk) {
+        const top = w.addStack(); top.centerAlignContent(); top.spacing = 6;
+        if (face) { const im = top.addImage(face); im.imageSize = new Size(26, 26); im.cornerRadius = 13; }
+        if (cfg.talk && line) txt(top, line, 10, INK, { lines: 2, min: 0.7 }); else txt(top, m.who, 12, m.th.deep, { bold: true });
+        w.addSpacer(6);
+      }
+      parts(w, cfg, m, innerW, face || cfg.talk ? 4 : 6, fs, family);
+    }
+    w.addSpacer();
+    footer(w, m, info, false);
+    return w;
+  }
+
+  if (family === 'medium') {
+    const row = w.addStack(); row.spacing = 10;
+    let colW = innerW;
+    if (cfg.charMode === 'big' && pose) {
+      const left = row.addStack(); left.layoutVertically(); left.size = new Size(104, 132);
+      left.addSpacer(); const im = left.addImage(pose); im.imageSize = new Size(104, 120); left.addSpacer();
+      colW = innerW - 114;
+    }
+    const col = row.addStack(); col.layoutVertically();
+    let budget = 6.5;
+    if (cfg.charMode === 'small' && face) {
+      const top = col.addStack(); top.centerAlignContent(); top.spacing = 6;
+      const im = top.addImage(face); im.imageSize = new Size(24, 24); im.cornerRadius = 12;
+      if (cfg.talk && line) txt(top, line, 11, INK, { lines: 2, min: 0.75 }); else txt(top, m.who, 13, m.th.deep, { bold: true });
+      col.addSpacer(5); budget -= 1.6;
+    } else if (cfg.talk && line) { bubble(col, line, m, 11, 2); col.addSpacer(6); budget -= 2; }
+    parts(col, cfg, m, colW, budget, fs, family);
+    col.addSpacer();
+    footer(col, m, info, true);
+    return w;
+  }
+
+  // large (and iPad extra large)
+  let budget = 15;
+  if (cfg.charMode || cfg.talk) {
+    const top = w.addStack(); top.spacing = 10; top.centerAlignContent();
+    if (cfg.charMode === 'big' && pose) { const im = top.addImage(pose); im.imageSize = new Size(110, 110); budget -= 5.5; }
+    else if (face) { const im = top.addImage(face); im.imageSize = new Size(32, 32); im.cornerRadius = 16; budget -= 2; }
+    if (cfg.talk && line) { const b = bubble(top, line, m, 13, 3); if (!(cfg.charMode === 'big' && pose)) budget -= 1; }
+    else if (!(cfg.charMode === 'big' && pose)) txt(top, m.who, 15, m.th.deep, { bold: true });
+    w.addSpacer(8);
+  }
+  parts(w, cfg, m, innerW, budget, 14, family);
+  w.addSpacer();
+  footer(w, m, info, true);
+  return w;
+}
+function footer(stack, m, info, showEvent) {
+  const foot = stack.addStack(); foot.centerAlignContent();
+  foot.addSpacer();
+  const d = new Date(info.at);
+  txt(foot, `${info.live ? '' : '⚠ '}${pad(d.getHours())}:${pad(d.getMinutes())}`, 9, MUTED);
+}
+
+// lock screen: one line, a small box, or a circle
+function buildLock(m, info, family, param) {
+  const w = new ListWidget(); w.url = APP;
+  w.refreshAfterDate = new Date(Date.now() + 15 * 60000);
+  const next = (m.current[0] || m.open[0]);
+  const ev = m.events.find(t => t.time);
+  if (family === 'accessoryInline') {
+    const s = m.total && !m.open.length ? `X ${m.W.allDone}` : `${m.W.block} ${m.day.block} · ${m.done}/${m.total}${next ? ' · ' + next.text : ''}`;
+    w.addText(s);
+    return w;
+  }
+  if (family === 'accessoryCircular') {
+    w.addAccessoryWidgetBackground = true;
+    const s = w.addStack(); s.layoutVertically(); s.centerAlignContent();
+    const a = s.addStack(); a.addSpacer(); const t1 = a.addText(`${m.done}/${m.total}`); t1.font = Font.boldRoundedSystemFont(15); t1.minimumScaleFactor = 0.6; a.addSpacer();
+    const b = s.addStack(); b.addSpacer(); const t2 = b.addText(`${m.W.block} ${m.day.block}`); t2.font = Font.systemFont(9); b.addSpacer();
+    return w;
+  }
+  // accessoryRectangular
+  const want = parseParam(param, 'small').parts;
+  const t1 = w.addText(`${m.W.block} ${m.day.block} · ${m.done}/${m.total}`); t1.font = Font.boldSystemFont(13);
+  const rows = want.includes('events') && ev ? [`○ ${ev.time} ${ev.text}`] : [];
+  (m.current.length ? m.current : m.open).slice(0, 2 - rows.length).forEach(x => rows.push(`${x.routine ? '·' : glyph(x)} ${x.u ? 'u ' : ''}${x.text}`));
+  if (!rows.length) rows.push(m.total ? m.W.allDone : m.W.none);
+  rows.forEach(s => { const t = w.addText(s); t.font = Font.systemFont(12); t.lineLimit = 1; });
+  return w;
 }
 
 // ======================= notifications =======================
-async function schedule(e, today) {
+async function schedule(e, m) {
   const THREAD = 'desk-buddy';
   const pending = await Notification.allPending();
   for (const n of pending) if (n.threadIdentifier === THREAD) n.remove();     // replace ours with the current list
   const now = new Date(), val = (k) => (e[k] && e[k].v !== null ? e[k].v : undefined);
-  const ch = THEMES[val('s|character')] ? val('s|character') : 'shiori';
-  const who = ((val('s|names') || {})[ch]) || THEMES[ch].name;
-  const at = (key, hhmm, minus) => { const [y, m, d] = key.split('-').map(Number); const [h, mi] = hhmm.split(':').map(Number); return new Date(y, m - 1, d, h, mi - (minus || 0)); };
-  let count = 0;
-  for (const key of [today, addDays(today, 1)]) {
+  const at = (key, hhmm, minus) => { const [y, mo, d] = key.split('-').map(Number); const [h, mi] = hhmm.split(':').map(Number); return new Date(y, mo - 1, d, h, mi - (minus || 0)); };
+  const L = { ko: (n) => `${EVENT_LEAD_MIN}분 뒤야. 준비하자.`, en: () => `In ${EVENT_LEAD_MIN} minutes. Get ready.`, ja: () => `${EVENT_LEAD_MIN}分後だよ。準備しよう。` }[m.lang];
+  for (const key of [m.key, addDays(m.key, 1)]) {
     for (const t of readDay(e, key).tasks) {
       if (t.kind !== 'event' || !t.time || t.status !== 'open') continue;
       const when = at(key, t.time, EVENT_LEAD_MIN);
       if (when <= now) continue;
       const n = new Notification();
-      n.title = `○ ${t.time} ${t.text}`; n.body = `${who}: ${EVENT_LEAD_MIN}분 뒤야. 준비하자.`;
+      n.title = `○ ${t.time} ${t.text}`; n.body = `${m.who}: ${L()}`;
       n.threadIdentifier = THREAD; n.identifier = `db-ev-${key}-${t.id}`; n.openURL = APP; n.setTriggerDate(when);
-      await n.schedule(); count++;
+      await n.schedule();
     }
   }
   for (const a of val('s|alarms') || []) {
     if (!a.on || !a.time) continue;
     const n = new Notification();
-    n.title = `⏰ ${a.label || '알람'} · ${a.time}`; n.body = `${who}가 PC에서 맞춘 알람이야.`; n.sound = 'alarm';
+    n.title = `⏰ ${a.label || (m.lang === 'ko' ? '알람' : m.lang === 'ja' ? 'アラーム' : 'Alarm')} · ${a.time}`; n.body = m.who; n.sound = 'alarm';
     n.threadIdentifier = THREAD; n.identifier = `db-al-${a.id}`; n.openURL = APP;
     const [h, mi] = a.time.split(':').map(Number);
     if (a.repeat) n.setDailyTrigger(h, mi, true);
-    else { let when = new Date(); when.setHours(h, mi, 0, 0); if (when <= now) continue; n.setTriggerDate(when); }
-    await n.schedule(); count++;
+    else { const when = new Date(); when.setHours(h, mi, 0, 0); if (when <= now) continue; n.setTriggerDate(when); }
+    await n.schedule();
   }
-  return count;
 }
 
-// ======================= widget =======================
-async function build(e, info) {
-  const val = (k) => (e[k] && e[k].v !== null ? e[k].v : undefined);
-  const ch = THEMES[val('s|character')] ? val('s|character') : 'shiori', th = THEMES[ch];
-  const today = dayKey(new Date(), val('s|dayStart'));
-  const day = readDay(e, today);
-  const family = config.widgetFamily || 'medium';
-  const tasks = day.tasks.filter(t => t.kind === 'task'), done = tasks.filter(t => t.status === 'done').length + day.routines.filter(r => r.done).length;
-  const total = tasks.filter(t => t.status === 'open' || t.status === 'done').length + day.routines.length;
-  const open = day.routines.filter(r => !r.done).map(r => ({ text: r.label, block: r.block, routine: true }))
-    .concat(day.tasks.filter(t => (t.kind === 'task' || t.kind === 'event') && t.status === 'open'));
-  const inBlock = open.filter(x => x.block === day.block), rest = open.filter(x => x.block !== day.block);
-  const max = family === 'small' ? 3 : family === 'large' ? 11 : 4;
-  const list = inBlock.concat(rest).slice(0, max);
-  const nextEv = day.tasks.filter(t => t.kind === 'event' && t.time && t.status === 'open').sort((a, b) => a.time.localeCompare(b.time))
-    .find(t => { const [h, m] = t.time.split(':').map(Number); const d = new Date(); return h * 60 + m >= d.getHours() * 60 + d.getMinutes(); });
-
-  const w = new ListWidget();
-  w.backgroundColor = new Color(th.soft); w.url = APP;
-  w.setPadding(12, 14, 10, 14);
-  w.refreshAfterDate = new Date(Date.now() + 15 * 60000);
-  const ink = new Color('#1E1E1E'), muted = new Color('#5B6670'), deep = new Color(th.deep), red = new Color('#C0392B');
-
-  const head = w.addStack(); head.centerAlignContent();
-  const img = await icon(ch);
-  if (img) { const im = head.addImage(img); im.imageSize = new Size(22, 22); im.cornerRadius = 11; head.addSpacer(6); }
-  const title = head.addText(`블럭 ${day.block}`); title.font = Font.boldSystemFont(14); title.textColor = deep;
-  head.addSpacer();
-  const cnt = head.addText(total ? `${done}/${total}` : '–'); cnt.font = Font.semiboldMonospacedSystemFont(13); cnt.textColor = done && done === total ? red : ink;
-  w.addSpacer(6);
-
-  if (!list.length) {
-    const t = w.addText(total ? '오늘 할 일 다 끝냈어 X' : '아직 적은 게 없어'); t.font = Font.systemFont(13); t.textColor = muted;
-  }
-  list.forEach((x, i) => {
-    const row = w.addStack(); row.centerAlignContent();
-    const g = row.addText(x.routine ? '·' : glyph(x)); g.font = Font.boldSystemFont(14); g.textColor = x.routine ? deep : ink;
-    row.addSpacer(5);
-    const mk = (x.u ? 'u ' : '') + (x.star ? '* ' : '');
-    const tx = row.addText(`${mk}${x.time ? x.time + ' ' : ''}${x.text}`);
-    tx.font = Font.systemFont(family === 'small' ? 12 : 13); tx.lineLimit = 1;
-    tx.textColor = x.routine ? deep : x.block === day.block ? ink : muted;
-    if (i < list.length - 1) w.addSpacer(2);
-  });
-  w.addSpacer();
-  const foot = w.addStack(); foot.centerAlignContent();
-  if (nextEv && family !== 'small') { const ev = foot.addText(`○ ${nextEv.time} ${nextEv.text}`); ev.font = Font.systemFont(11); ev.textColor = deep; ev.lineLimit = 1; }
-  foot.addSpacer();
-  const d = new Date(info.at), st = foot.addText(`${info.live ? '' : '⚠ '}${pad(d.getHours())}:${pad(d.getMinutes())}`);
-  st.font = Font.systemFont(10); st.textColor = muted;
-  return w;
-}
-
-function message(text) { const w = new ListWidget(); w.backgroundColor = new Color('#F2F7F4'); w.url = APP; const t = w.addText(text); t.font = Font.systemFont(13); t.textColor = new Color('#5B6670'); return w; }
-
-// ======================= run =======================
+// ======================= in the app: code, previews, designer =======================
+function message(text) { const w = new ListWidget(); w.backgroundColor = C('#F2F7F4'); w.url = APP; txt(w, text, 13, MUTED); return w; }
 async function askCode(current) {
   const a = new Alert();
   a.title = '책상 친구 연동 코드';
@@ -266,29 +524,63 @@ async function askCode(current) {
   Keychain.set(KEY_NAME, code);
   return code;
 }
+const PART_MENU = [['큰캐릭터', '캐릭터 그림 (크게)'], ['작은캐릭터', '캐릭터 얼굴 (작게)'], ['말', '말풍선 (지금 상황에 맞는 한마디)'], ['날짜', '날짜'], ['시간', '시계'],
+  ['진행', '끝낸 수 / 전체 + 진행 막대'], ['블럭', '블럭 6칸 (불릿 기호)'], ['지금블럭', '지금 블럭 할 일'], ['할일', '남은 할 일 전부'], ['u', 'u 할 일만'],
+  ['루틴', '오늘 루틴'], ['일정', '다음 일정'], ['메모', '메모 첫 줄 (고정 먼저)']];
+async function designer(m, info) {
+  const picked = [];
+  for (;;) {
+    const a = new Alert();
+    a.title = '위젯 꾸미기';
+    a.message = (picked.length ? `지금: ${picked.join(', ')}\n` : '') + '보여줄 칸을 위에서부터 순서대로 골라요.';
+    PART_MENU.filter(([k]) => !picked.includes(k)).forEach(([k, d]) => a.addAction(`${k} — ${d}`));
+    if (picked.length) a.addDestructiveAction('다 골랐어');
+    a.addCancelAction('취소');
+    const r = await a.present();
+    if (r === -1) return;
+    const left = PART_MENU.filter(([k]) => !picked.includes(k));
+    if (r >= left.length) break;
+    picked.push(left[r][0]);
+  }
+  const param = picked.join(', ');
+  Pasteboard.copy(param);
+  const fam = new Alert(); fam.title = '미리보기 크기'; ['작게', '중간', '크게'].forEach(s => fam.addAction(s)); fam.addCancelAction('건너뛰기');
+  const f = await fam.present();
+  if (f >= 0) { const family = ['small', 'medium', 'large'][f]; const w = await buildHome(m, info, family, param); await w[{ small: 'presentSmall', medium: 'presentMedium', large: 'presentLarge' }[family]](); }
+  const done = new Alert();
+  done.title = '복사했어요';
+  done.message = `"${param}"\n\n홈 화면 위젯을 길게 눌러 › 위젯 편집 › Parameter 칸에 붙여 넣으세요. 위젯마다 다르게 해도 돼요.`;
+  done.addAction('확인'); await done.present();
+}
 
 async function main() {
   let code = Keychain.contains(KEY_NAME) ? Keychain.get(KEY_NAME) : null;
-  if (!config.runsInWidget && !config.runsInAccessoryWidget) {
-    if (code) {
-      const a = new Alert(); a.title = '책상 친구'; a.message = `연동 코드: ${code}`;
-      a.addAction('위젯 미리보기'); a.addAction('코드 바꾸기'); a.addAction('앱 열기'); a.addCancelAction('닫기');
-      const r = await a.present();
-      if (r === 1) code = await askCode(code) || code;
-      if (r === 2) { Safari.open(APP); return; }
-      if (r === -1) return;
-    } else code = await askCode();
+  const inApp = !config.runsInWidget && !config.runsInAccessoryWidget;
+  let action = 'preview';
+  if (inApp) {
+    if (!code) code = await askCode();
+    if (!code) return;
+    const a = new Alert(); a.title = '책상 친구'; a.message = `연동 코드: ${code}`;
+    ['위젯 꾸미기', '미리보기 · 작게', '미리보기 · 중간', '미리보기 · 크게', '코드 바꾸기', '앱 열기'].forEach(s => a.addAction(s)); a.addCancelAction('닫기');
+    const r = await a.present();
+    if (r === -1) return;
+    if (r === 4) { code = await askCode(code) || code; }
+    if (r === 5) { Safari.open(APP); return; }
+    action = ['design', 'small', 'medium', 'large', 'medium'][r];
   }
-  if (!code) { const w = message('Scriptable 앱에서 이 스크립트를 한 번 실행해 연동 코드를 넣어 주세요.'); Script.setWidget(w); if (!config.runsInWidget) await w.presentMedium(); return; }
+  const family = config.widgetFamily || (['small', 'medium', 'large'].includes(action) ? action : 'medium');
+  const show = async (w) => { if (inApp) await w[{ small: 'presentSmall', medium: 'presentMedium', large: 'presentLarge' }[family] || 'presentMedium'](); else Script.setWidget(w); };
+  if (!code) return show(message('Scriptable 앱에서 이 스크립트를 한 번 실행해 연동 코드를 넣어 주세요.'));
   let info;
   try { info = await load(code); }
-  catch (err) { const w = message('연결이 안 돼요. 잠시 뒤 다시 볼게요.'); w.refreshAfterDate = new Date(Date.now() + 10 * 60000); Script.setWidget(w); if (!config.runsInWidget) await w.presentMedium(); return; }
-  if (!info.e) { const w = message('아직 이 코드로 저장된 게 없어요. PC에서 연동을 먼저 켜 주세요.'); Script.setWidget(w); if (!config.runsInWidget) await w.presentMedium(); return; }
-  const val = (k) => (info.e[k] && info.e[k].v !== null ? info.e[k].v : undefined);
-  if (NOTIFY && info.live) { try { await schedule(info.e, dayKey(new Date(), val('s|dayStart'))); } catch (e) {} }
-  const w = await build(info.e, info);
-  if (config.runsInWidget) Script.setWidget(w); else await w.presentMedium();
+  catch (err) { const w = message('연결이 안 돼요. 잠시 뒤 다시 볼게요.'); w.refreshAfterDate = new Date(Date.now() + 10 * 60000); return show(w); }
+  if (!info.e) return show(message('아직 이 코드로 저장된 게 없어요. PC에서 연동을 먼저 켜 주세요.'));
+  const m = model(info.e, new Date());
+  if (NOTIFY && info.live) { try { await schedule(info.e, m); } catch (e) {} }
+  if (action === 'design') return designer(m, info);
+  const w = family.startsWith('accessory') ? buildLock(m, info, family, args.widgetParameter) : await buildHome(m, info, family, args.widgetParameter);
+  await show(w);
 }
 
-if (typeof module !== 'undefined' && module.exports && typeof Script === 'undefined') module.exports = { Crypto, readDay, dayKey };
+if (typeof module !== 'undefined' && module.exports && typeof Script === 'undefined') module.exports = { Crypto, readDay, dayKey, model, buildHome, buildLock, parseParam, situation, speak, lineBank };
 else { await main(); Script.complete(); }

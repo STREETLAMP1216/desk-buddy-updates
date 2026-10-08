@@ -148,7 +148,7 @@
 
   function toggleDone(day, id) {
     const t = day.tasks.find(x => x.id === id);
-    if (!t || t.kind !== 'task') return null;
+    if (!t || (t.kind !== 'task' && t.kind !== 'event')) return null;     // events can be ticked off too (○ → X)
     if (t.status === 'open') t.status = 'done';
     else if (t.status === 'done') t.status = 'open';
     return t.status;
@@ -156,7 +156,7 @@
 
   // plain text in the notebook's symbols, ready to paste or copy by hand
   function glyph(t) {
-    if (t.kind === 'event') return '○';
+    if (t.kind === 'event') return t.status === 'done' ? 'X' : '○';
     if (t.kind === 'note') return '—';
     if (t.kind === 'idea') return '!';
     return { open: '·', done: 'X', migrated: '>', scheduled: '<' }[t.status] || '·';

@@ -27,6 +27,7 @@
   <main id="views">
     <!-- today -->
     <section id="todayView" class="view">
+      <div class="today-tools"><button id="copyBtn" class="mini" type="button">수첩용 복사</button></div>
       <div class="block-nav">
         <button id="blockPrev" type="button" aria-label="이전 블럭">‹</button>
         <span id="blockNow"></span>
@@ -83,7 +84,28 @@
         <select id="setCallMe"><option value="">안 부르기</option><option value="야">야</option><option value="저기">저기</option><option value="이봐">이봐</option><option value="custom">이름 직접 입력…</option></select>
       </label>
       <label class="field" id="callMeNameRow" hidden>내 이름 <input id="setCallMeName" type="text" maxlength="10" placeholder="예: 수환"></label>
-      <label class="field">하루 시작 <input id="setDayStart" type="time"></label>
+      <label class="field">캐릭터 이름 <input id="setName" type="text" maxlength="12" placeholder="시오리"></label>
+      <label class="field" title="이 시각 전까지는 전날로 쳐요">하루 시작 <input id="setDayStart" type="time"></label>
+
+      <h3>캐릭터 · 말</h3>
+      <label class="field">캐릭터 크기
+        <select id="setCharSize"><option value="L">크게</option><option value="M">보통</option><option value="S">작게</option><option value="off">숨기기</option></select>
+      </label>
+      <label class="field">말 수
+        <select id="setChatter"><option value="quiet">조용히 (물어볼 때만)</option><option value="normal">보통</option><option value="chatty">수다스럽게</option></select>
+      </label>
+      <label class="field">점심 <input id="setLunch" type="time"></label>
+      <label class="field">간식 <input id="setSnack" type="time"></label>
+      <label class="field">저녁 <input id="setDinner" type="time"></label>
+
+      <h3>알람</h3>
+      <p class="sub">PC와 같은 알람이에요. 폰 알림은 Scriptable 위젯이 대신 울려 줘요.</p>
+      <div id="alarmList" class="alarm-list"></div>
+      <form id="alarmAdd" class="add-row" autocomplete="off">
+        <input id="alarmTime" type="time" aria-label="알람 시각" style="flex:0 0 auto;width:120px">
+        <input id="alarmLabel" type="text" placeholder="이름 (예: 약속)" aria-label="알람 이름">
+        <button type="submit">추가</button>
+      </form>
 
       <h3>매일 루틴</h3>
       <ul id="routineEditor" class="routine-editor"></ul>
@@ -92,9 +114,12 @@
         <button type="submit">추가</button>
       </form>
 
+      <h3>메모</h3>
+      <button id="exportNotes" class="ghost wide" type="button">메모 전부 TXT로 내보내기</button>
+
       <h3>앱으로 쓰기</h3>
       <p class="sub" id="installHint">아이폰: Safari 공유 버튼 › 홈 화면에 추가. 갤럭시: Chrome 메뉴 › 홈 화면에 추가.</p>
-      <p class="sub dim" id="verLabel"></p>
+      <div class="row-between"><span class="sub" id="verLabel"></span><button id="checkUpdate" class="pill" type="button">업데이트 확인</button></div>
     </section>
   </main>
 
