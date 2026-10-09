@@ -276,7 +276,7 @@ function headLine(stack, m, fs) {
   txt(row, m.total ? `${m.done}/${m.total}` : '–', fs - 1, m.total && m.done === m.total ? RED : INK, { mono: true });
 }
 function progress(stack, m, width) {
-  const bar = stack.addStack(); bar.size = new Size(width, 6); bar.backgroundColor = C(m.th.line); bar.cornerRadius = 3;
+  const bar = stack.addStack(); bar.size = new Size(width, 6); bar.backgroundColor = new Color(m.th.deep, 0.18); bar.cornerRadius = 3;   // see-through track, so it still differs from the fill when iOS tints the widget
   const f = m.total ? m.done / m.total : 0;
   if (f > 0) { const fill = bar.addStack(); fill.size = new Size(Math.max(6, width * f), 6); fill.backgroundColor = C(m.th.deep); fill.cornerRadius = 3; }
   bar.addSpacer();
@@ -305,17 +305,17 @@ function blockGrid(stack, m, width) {
   m.blocks.forEach((gs, i) => {
     const n = i + 1, cell = row.addStack(); cell.layoutVertically(); cell.size = new Size(cw, 30); cell.cornerRadius = 6;
     cell.borderWidth = n === m.day.block ? 1.5 : 0.5; cell.borderColor = C(n === m.day.block ? m.th.deep : m.th.line);
-    cell.backgroundColor = C(n === m.day.block ? m.th.soft : '#FFFFFF'); cell.setPadding(2, 2, 2, 2);
+    cell.setPadding(2, 2, 2, 2);
     const top = cell.addStack(); top.addSpacer(); txt(top, String(n), 9, n === m.day.block ? m.th.deep : MUTED, { bold: true }); top.addSpacer();
     const bot = cell.addStack(); bot.addSpacer();
     const s = gs.slice(0, 3).join('') + (gs.length > 3 ? '…' : '');
     const t = txt(bot, s || ' ', 10, INK, { mono: true }); t.lineLimit = 1; t.minimumScaleFactor = 0.6;
     bot.addSpacer();
-    if (n < m.day.block) cell.backgroundColor = C('#FAFAFA');
   });
 }
 function bubble(stack, text, m, fs, lines) {
-  const b = stack.addStack(); b.backgroundColor = C('#FFFFFF'); b.cornerRadius = 10; b.borderWidth = 1; b.borderColor = C(INK);
+  // outline only: on the tinted/clear home screen iOS paints fills and text the same white, so a filled bubble hides its words
+  const b = stack.addStack(); b.cornerRadius = 10; b.borderWidth = 1.2; b.borderColor = C(INK);
   b.setPadding(5, 8, 5, 8);
   txt(b, text, fs, INK, { lines, min: 0.75 });
   return b;

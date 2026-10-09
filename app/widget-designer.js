@@ -2,7 +2,7 @@
 // so you see the widget with your own data and copy the Parameter text that gives exactly that.
 (function () {
   // ---------- a stand-in for Scriptable (enough for the widget's drawing) ----------
-  class Color { constructor(hex) { this.hex = hex; } }
+  class Color { constructor(hex, a) { this.hex = a != null && a < 1 ? hex + Math.round(a * 255).toString(16).padStart(2, '0') : hex; } }
   class Size { constructor(w, h) { this.width = w; this.height = h; } }
   const Font = {};
   ['systemFont', 'boldSystemFont', 'semiboldSystemFont', 'boldRoundedSystemFont', 'semiboldMonospacedSystemFont', 'boldMonospacedSystemFont', 'mediumSystemFont'].forEach(n => {
