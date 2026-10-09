@@ -390,7 +390,7 @@ async function buildHome(m, info, family, param) {
   const [Wd, Ht] = SIZES[family] || SIZES.medium;
   const w = new ListWidget();
   w.backgroundColor = C(m.th.soft);
-  w.refreshAfterDate = new Date(Date.now() + 15 * 60000);
+  w.refreshAfterDate = new Date(Date.now() + 5 * 60000);   // ask iOS for every 5 minutes (it decides; usually 5–15)
   const padX = family === 'small' ? 12 : 14;
   w.setPadding(family === 'small' ? 12 : 12, padX, 10, padX);
   const now = new Date(), sit = situation(m, now);
@@ -470,7 +470,7 @@ function footer(stack, m, info, showEvent) {
 // lock screen: one line, a small box, or a circle
 function buildLock(m, info, family, param) {
   const w = new ListWidget();
-  w.refreshAfterDate = new Date(Date.now() + 15 * 60000);
+  w.refreshAfterDate = new Date(Date.now() + 5 * 60000);   // ask iOS for every 5 minutes (it decides; usually 5–15)
   const next = (m.current[0] || m.open[0]);
   const ev = m.events.find(t => t.time);
   if (family === 'accessoryInline') {
