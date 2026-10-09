@@ -144,6 +144,7 @@
     document.documentElement.lang = LANG;
     window.I18N.translateDom(document.body, LANG);
     L.setWeek(window.I18N.week(LANG));
+    document.querySelectorAll('a[data-guide]').forEach(a => { a.href = '../guide/' + (LANG === 'ko' ? '' : LANG + '/') + a.dataset.guide; });
   }
   function setCharacter(id, quiet) {
     CH = CHARS[id] || CHARS.shiori;

@@ -267,7 +267,7 @@
     if (s === 'evening') return 'hoodie';
     // night: while you're still at the computer she stays up with you ("still online");
     // only after you've been gone a while does she change into pajamas and doze off
-    return idleSec < NIGHT_AWAKE_SEC ? 'hoodie' : 'pajama';
+    return idleSec < NIGHT_AWAKE_SEC ? 'hoodie_night' : 'pajama';    // (a "good night" version of the hoodie, where there is one)
   }
 
   // ----- weather (Open-Meteo / WMO codes) -----

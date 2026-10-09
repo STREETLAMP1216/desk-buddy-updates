@@ -96,6 +96,7 @@ window.ASSETS = {
   "hm_hpopen",
   "hm_open",
   "hoodie",
+  "hoodie_night",
   "laptop_closed",
   "laptop_hpclosed",
   "laptop_hpopen",

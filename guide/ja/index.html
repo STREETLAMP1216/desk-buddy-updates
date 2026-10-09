@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>机ともだち 使い方ガイド</title>
+<meta name="description" content="机ともだち PC・スマホの使い方 — 記号、ブロック、タスクの書き方、連携、ウィジェット">
+<meta name="theme-color" content="#F2F7F4">
+<link rel="icon" href="../../app/shared/assets/icon_shiori.png">
+<link rel="stylesheet" href="../guide.css">
+</head>
+<body>
+<header class="hero">
+  <img src="../../app/shared/assets/icon_shiori.png" alt="">
+  <div>
+    <h1>机ともだち 使い方ガイド</h1>
+    <p class="lede">主役は手帳（バレットジャーナル）。机ともだちは、その横で今日のタスクを一緒に持っている友だちです。PCとスマホは同じ内容を見ています。</p>
+    <div class="langs"><a href="../">한국어</a><a href="../en/">English</a><a class="on" href="./">日本語</a></div>
+  </div>
+</header>
+<nav class="toc"><div>
+  <a href="#start">はじめに</a><a href="#screen">画面</a><a href="#symbols">記号</a><a href="#write">書き方</a><a href="#blocks">ブロック</a><a href="#more">⋯ メニュー</a><a href="#left">残りのタスク</a><a href="#routine">ルーティン</a><a href="#memo">メモ・カレンダー</a><a href="#timer">タイマー・アラーム</a><a href="#chars">キャラクター</a><a href="#phone">スマホ・連携</a><a href="#settings">設定</a><a href="#tips">先延ばししないコツ</a><a href="#faq">よくある質問</a>
+</div></nav>
+<main>
+
+  <h2 id="start"><span class="n">1</span>はじめに</h2>
+  <ol class="steps">
+    <li><b>PC</b>：<code>DeskBuddy-latest.zip</code> を展開して <code>install.bat</code> を実行。画面の隅にキャラクターが現れます。</li>
+    <li>キャラクターを<b>クリック</b>するとタスク画面が開きます。<b>ドラッグ</b>で好きな場所へ。どの隅に置いても、吹き出しとカードは反対側に開きます。</li>
+    <li>どのウィンドウからでも <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>D</kbd> — タスク画面が開いて、すぐ書けます。もう一度押すと閉じます。</li>
+    <li>アップデートは自動で確認します。今すぐなら <b class="k">設定 › アップデート › アップデートを確認</b>。</li>
+  </ol>
+
+  <h2 id="screen"><span class="n">2</span>画面</h2>
+  <div class="shots">
+    <figure><img src="../img/pc-card.png" alt="PC：キャラクターとカード"><figcaption>PC · キャラクターとカード</figcaption></figure>
+    <figure><img src="../img/pc-panel.png" alt="PC：タスク画面"><figcaption>PC · タスク画面</figcaption></figure>
+    <figure><img src="../img/phone-today.png" alt="スマホ：今日"><figcaption>スマホ · 今日</figcaption></figure>
+  </div>
+  <ul class="plain">
+    <li><b>キャラクター</b> — 時間や状況で絵が変わります（タイピング、手帳、ごはん、おやつ、夜、音楽中はヘッドホン…）。</li>
+    <li><b>吹き出し</b> — タスクを思い出させ、終わればほめてくれます。質問のときはボタンが出ます。</li>
+    <li><b>カード</b> — キャラクターの横にいつも出ている小さなカード。表示する項目（日付、時刻、今のブロック、タスク、u、メモ、天気、バッテリー、再生中の曲…）と順番、<b>文字サイズと幅</b>を設定で変えられます。</li>
+    <li><b>タスク画面</b> — 上のアイコンで <b>今日 · メモ · カレンダー · タイマー · 設定</b> を切り替え。角をドラッグするとサイズが変わります。</li>
+  </ul>
+
+  <h2 id="symbols"><span class="n">3</span>記号</h2>
+  <p>手帳で使う記号そのままです。手帳とアプリが同じ言葉で話します。</p>
+  <table>
+    <thead><tr><th>記号</th><th>意味</th><th>アプリでは</th></tr></thead>
+    <tbody>
+      <tr><td class="sym"><span class="bj bj-dot"><i>·</i></span></td><td><b>タスク</b></td><td class="how">書いたものはタスク。記号を押すと X。</td></tr>
+      <tr><td class="sym"><span class="bj bj-x"><i>X</i></span></td><td><b>完了</b></td><td class="how">もう一度押すと元に戻ります。消さずに残します。</td></tr>
+      <tr><td class="sym"><span class="bj bj-gt"><i>&gt;</i></span></td><td><b>先送り</b> — 翌日へ</td><td class="how">タスク行の <b class="k">&gt;</b>。明日のリストに入り、今日の行には &gt; が残ります。</td></tr>
+      <tr><td class="sym"><span class="bj bj-lt"><i>&lt;</i></span></td><td><b>日程移動</b> — 決めた日へ</td><td class="how"><b class="k">&lt;</b> を押して日付を選択。「→ 10/20」のように移した日が出ます。</td></tr>
+      <tr><td class="sym"><span class="bj bj-o"><i>○</i></span></td><td><b>予定</b>（イベント）</td><td class="how">時間の決まったこと。終わったら押して X。タスクの数には入りません。</td></tr>
+      <tr><td class="sym"><span class="bj bj-dash"><i>—</i></span></td><td><b>メモ</b></td><td class="how">タスクの下に付けると、そのタスクのメモになります。</td></tr>
+      <tr><td class="sym"><span class="bj bj-bang"><i>!</i></span></td><td><b>アイデア</b></td><td class="how">思いついたこと。チェックはしません。</td></tr>
+      <tr><td class="sym"><span class="mark">u</span></td><td><b>すぐ片づくもの</b>（urgent）</td><td class="how">5〜10分で終わること。リストの上に集まります。</td></tr>
+      <tr><td class="sym"><span class="mark">*</span></td><td><b>重要</b></td><td class="how">時間はかかっても必ずやること。</td></tr>
+      <tr><td class="sym"><span class="strike">取り消し</span></td><td><b>取り消し線</b> — 今回はやらない</td><td class="how">その日の事情が変わったとき。数に入りません。ルーティンは「今日だけ取り消し線」。</td></tr>
+      <tr><td class="sym" style="font-size:18px;color:var(--muted)">└</td><td><b>サブ項目</b></td><td class="how">タスクの下に字下げしたタスク・メモ。上のタスクのブロックに従います。</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="write"><span class="n">4</span>タスクの書き方</h2>
+  <p>下の欄に書いて <kbd>Enter</kbd>。<b>先頭に記号を付ける</b>とそのまま反映されます。</p>
+  <table>
+    <thead><tr><th>こう書くと</th><th>こうなります</th></tr></thead>
+    <tbody>
+      <tr><td><code>u ミンギに連絡</code></td><td>u タスク</td></tr>
+      <tr><td><code>* ポートフォリオ写真</code></td><td>重要(*) タスク</td></tr>
+      <tr><td><code>u * 契約書の確認</code></td><td>u + 重要</td></tr>
+      <tr><td><code>o 税理士と打ち合わせ</code> または <code>○ …</code></td><td>予定 ○</td></tr>
+      <tr><td><code>- 窓側のカット中心</code> または <code>— …</code></td><td>メモ —</td></tr>
+      <tr><td><code>! 展示のアイデア</code></td><td>アイデア !</td></tr>
+      <tr><td><code>ㄴ プリントを出す</code></td><td>すぐ上のタスクの<b>サブタスク</b></td></tr>
+      <tr><td><code>ㄴ — 場所を確認</code></td><td>すぐ上のタスクに付く<b>メモ</b></td></tr>
+    </tbody>
+  </table>
+  <p class="note">新しいタスクは<b>今のブロック</b>（または表示中のブロック）に入ります。手帳に写すときはタスク画面上の <b class="k">コピー</b>（スマホは <b class="k">手帳用コピー</b>）— 記号付きの文字でコピーされます。</p>
+  <p><b>並べ替え</b>：PCは行をドラッグ、スマホは ⋯ の ↑ ↓。PCでは別のタスクの<b>真ん中</b>に落とすと、その下のサブタスクになります。</p>
+
+  <h2 id="blocks"><span class="n">5</span>ブロック（ブロック6）</h2>
+  <p>一日を6つのブロックに分けます。ブロックの区切りは時計ではなく<b>自分で進めます</b>。</p>
+  <div class="blocks"><span>1<i>X X</i></span><span class="cur">2<i>X · ·</i></span><span>3<i>○</i></span><span>4<i>·</i></span><span>5<i>·</i></span><span>6<i>· ·</i></span></div>
+  <ul class="plain">
+    <li>マス内の記号 = そのブロックのタスク（1行に3つ）。太い枠が<b>今のブロック</b>。</li>
+    <li><b class="k">‹ 今はブロック2 ›</b> でブロックを進めます。残りがあれば一緒に移すか聞きます。進めると、そのブロックのタスクが上に来ます。</li>
+    <li>ブロックのマスを押すと：<b>1回</b> = そのブロックを上に（ほかは薄く）· <b>2回</b> = そのブロックだけ · <b>3回</b> = 全部。</li>
+    <li>マスの外（空いたところ）を押すと、ブロック順にまとめて表示します。</li>
+    <li>ブロックのタスクを全部終えると「次のブロックに進む？」と聞いてきます。</li>
+    <li>タスク行の左の小さな数字 = そのタスクのブロック。押して変更。</li>
+  </ul>
+
+  <h2 id="more"><span class="n">6</span>⋯ メニュー — タスクひとつを詳しく</h2>
+  <p>タスク行の <b class="k">⋯</b>（スマホは文字を押しても開きます）</p>
+  <ul class="plain">
+    <li><b>内容を直す</b> — 一番上の欄で直して Enter。</li>
+    <li><b>取り消し線を引く</b> — 今回はやらないと決めたこと。もう一度押すと消えます。</li>
+    <li><b>種類</b> — · タスク / ○ 予定 / — メモに変更、u · * のオン・オフ。</li>
+    <li><b>計画</b> — 「いつ・どこで？」（例：<i>昼ごはんの後、机に座ったら</i>）。タスクの下に小さく出ます。<b>✂ 大きすぎ？最初の一歩だけ</b> — 5分でできる最初の行動を、すぐ下に u タスクとして付けます。</li>
+    <li><b>下に</b> — ↳ サブタスク（Enterで続けて追加）、— メモを付ける、上の項目の下へ / 下から出す。</li>
+    <li><b>時間</b> — かかる時間（15分・30分・1時間・2時間）または開始〜終了時刻。タスクの前に小さなタグで出ます。</li>
+  </ul>
+
+  <h2 id="left"><span class="n">7</span>前の日の残りのタスク</h2>
+  <p>夜0時を過ぎてもリストはそのまま。一日は設定の<b>「一日の始まり」</b>（初期値は朝4時）で切り替わります。</p>
+  <p>前の日に終わらなかったタスクは、今日のリストの上に<span style="color:#B0473A">赤く</span>集まります（最近14日）。</p>
+  <ul class="plain">
+    <li><b class="k">↩</b> 今日のタスクにする（元の日には &gt; が残ります）· <b class="k">✕</b> 手放す · <b class="k">全部今日へ</b></li>
+    <li>サブタスクは上のタスクと一緒に移ります。</li>
+    <li>残りがある日、キャラクターは責めずに「ひとつだけ持ってこよう」と言います。</li>
+  </ul>
+
+  <h2 id="routine"><span class="n">8</span>ルーティン</h2>
+  <ul class="plain">
+    <li>毎日（または決めた曜日）自動で今日のリストに入るタスク。文字色だけが違います。</li>
+    <li><b class="k">設定 › 毎日のルーティン</b> で追加・曜日・順番。ブロックも決められます（ほかの日もそのまま）。</li>
+    <li>特別な日は<b>今日だけ取り消し線</b> — PCはルーティン行にマウスを乗せて右の <b>S̶</b>、スマホは左のブロック番号を押すと出ます。</li>
+  </ul>
+
+  <h2 id="memo"><span class="n">9</span>メモ · カレンダー</h2>
+  <ul class="plain">
+    <li><b>メモ</b> — 何枚でも。1行目がタイトル。上に固定、並べ替え（PCは ⋮⋮ をドラッグ）、TXTで書き出し。カードに1行目を出せます。</li>
+    <li><b>カレンダー</b> — 日ごとに 完了/全体 と最初の予定が見えます。日付を押して、予定（時刻付き）やタスク（今日以降）を追加。</li>
+  </ul>
+
+  <h2 id="timer"><span class="n">10</span>タイマー · アラーム（PC）</h2>
+  <ul class="plain">
+    <li><b>タイマー</b> — ダイヤルを回す（1周60分）か数字で入力。最近使った3つが下に出ます。</li>
+    <li><b>アラーム</b> — シンプルなデジタル時計の音（ピピピピ）。毎日くり返しも可。スマホアプリの設定でも同じアラームを見て直せて、iPhoneウィジェットを使えばスマホにも通知が来ます。</li>
+  </ul>
+
+  <h2 id="chars"><span class="n">11</span>キャラクター</h2>
+  <ul class="plain">
+    <li><b>しおり</b>（ミント）— 口数の少ないクーデレ。新芽と一緒。</li>
+    <li><b>ふぶき</b>（黄色）— 生意気なハッカー。目玉ドローンと一緒。</li>
+    <li><b>すう</b>（青）— 明るい応援団長。ゴールデンレトリバーのワンコと一緒。</li>
+    <li><b>お知らせだけ</b> — キャラクターなし。小さな手帳アイコンと短いお知らせだけ。</li>
+  </ul>
+  <p>キャラクターを変えると、すべての画面の色がそのキャラクターの色になります。名前、自分の呼ばれ方（「ねえ」、名前…）、おしゃべりの量、絵の変わりやすさは設定で。</p>
+
+  <h2 id="phone"><span class="n">12</span>スマホアプリ · 連携</h2>
+  <ol class="steps">
+    <li>PCの <b class="k">設定 › スマホ連携 › 連携コードを作る</b> — 16文字のコードとQRが出ます。</li>
+    <li>スマホのカメラでQRを読むか、<a href="../../app/">スマホアプリ</a>を開きます。</li>
+    <li>iPhone：Safariの共有 › <b>ホーム画面に追加</b>。Android：Chrome ⋮ › <b>アプリをインストール</b>。</li>
+    <li>ホーム画面のアプリを開いて <b class="k">設定 › 連携</b> にコードを入れ、<b>接続</b>。</li>
+  </ol>
+  <ul class="plain">
+    <li>タスク・ブロック・ルーティン・メモ・予定・アラーム・キャラクター・言語が行き来します。ウィンドウサイズなど端末だけの設定は行き来しません。</li>
+    <li>アプリを開いたとき、開いている間は30秒ごと、変更の数秒後に同期します。今すぐ：PCのトレイ › <b>スマホと今すぐ同期</b>、スマホは右上の<b>丸</b>。</li>
+    <li>内容は連携コードで<b>暗号化</b>されてから送られます。サーバーも読めません。コードは人に教えないでください。</li>
+    <li>iPhoneのホーム・ロック画面ウィジェットと通知 → <a href="../../widget/">ウィジェットガイド</a>（韓国語）</li>
+  </ul>
+
+  <h2 id="settings"><span class="n">13</span>設定ひと目で</h2>
+  <table>
+    <thead><tr><th>タブ</th><th>ここで</th></tr></thead>
+    <tbody>
+      <tr><td>基本</td><td>言語、キャラクター名、おしゃべりの量、絵の変わりやすさ、食事・締めの時刻、天気の地域、吹き出しの位置、呼ばれ方</td></tr>
+      <tr><td>サイズ · 透明度</td><td>キャラクター・文字サイズ、タスク画面の倍率・幅・高さ、透明度、<b>カードの文字サイズ・幅</b>、作業時間、一日の始まり</td></tr>
+      <tr><td>キャラの横に常に表示</td><td>カードに出す項目と順番、数（設定を開いている間、横にカードのプレビューが出ます）</td></tr>
+      <tr><td>ウィンドウ</td><td>呼び出しショートカット、常に手前、動きを止める、マウスを乗せたらくっきり、クリック透過（Ctrlでつかむ）、自動起動、天気・Bluetooth・音楽・CPU</td></tr>
+      <tr><td>ルーティン · スマホ連携 · アップデート · キャラクター</td><td>名前のとおり</td></tr>
+    </tbody>
+  </table>
+  <p class="note">スマホアプリの設定もタブ（連携 · キャラクター · 基本 · アラーム · ルーティン · その他）に分かれています。<b>その他 › ウィジェットを作る</b>で、ウィジェットをプレビューしながら選べます。</p>
+
+  <h2 id="tips"><span class="n">14</span>先延ばししないコツ — アプリに入っているもの</h2>
+  <div class="tip"><b>いつ・どこでを決める。</b>「昼ごはんの後、机に座ったら → リーディング1セット」のように決めた計画は、ただの目標よりずっと守られます。⋯ › 計画。</div>
+  <div class="tip"><b>最初の一歩をうんと小さく。</b>始めるのが一番むずかしい。「ファイルを開いてタイトルを書く」くらいの5分で。⋯ › ✂ 最初の一歩、そして u。</div>
+  <div class="tip"><b>先延ばしした自分を責めない。</b>自分を許した人ほど、次は先延ばししにくくなります。残りのタスクは ↩ ひとつだけ持ってくれば十分。</div>
+  <div class="tip"><b>新しいスタートをこまめに。</b>ブロックを進めるたびに「新しく始める」気分 — 一日に6回。</div>
+  <div class="tip"><b>進み具合を見えるように。</b>X が増えていくのを見るだけで力が出ます。カード・ブロックのマス・ウィジェット。</div>
+
+  <h2 id="faq"><span class="n">?</span>よくある質問</h2>
+  <details><summary>夜0時を過ぎたのにリストがそのまま</summary><p>正常です。「一日の始まり」（初期値は朝4時）までは前日として数えます。設定で変えられます。</p></details>
+  <details><summary>キャラクターがほかのウィンドウを隠す / クリックをつかまれる</summary><p>設定 › ウィンドウ › <b>クリック透過</b> をオンにすると、Ctrlを押したときだけつかめます。透明度を下げる、「マウスを乗せたらくっきり」をオフにするのも手です。</p></details>
+  <details><summary>予定に X を付けたのに数が増えない</summary><p>予定（○）はタスクの数に入りません。数えたいときは ⋯ › 種類 › タスクにする。</p></details>
+  <details><summary>スマホで書いたものがPCに出ない</summary><p>PCのタスク画面を開くとすぐ同期します。だめならトレイ › スマホと今すぐ同期、設定 › スマホ連携の状態を確認。</p></details>
+  <details><summary>新しいバージョンが来ない</summary><p>PC：設定 › アップデートを確認（公開から数分かかることがあります）。スマホ：アプリを閉じて開き直すと「新しいバージョンが出たよ」と聞いてきます。設定 › その他 › アップデートを確認もあります。</p></details>
+  <details><summary>アンインストールしたい</summary><p>トレイのメニューで削除を選ぶと、記録を残すかどうかも聞いてきます。</p></details>
+</main>
+<footer>机ともだち · <a href="../../app/">スマホアプリ</a> · <a href="../../widget/">ウィジェットガイド</a></footer>
+</body>
+</html>
