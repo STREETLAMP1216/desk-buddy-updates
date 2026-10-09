@@ -258,6 +258,8 @@
       if (typeof v === 'number' && x.block !== v) { if (ui.blockOnly) return; row.classList.add('dim'); }
       list.appendChild(row);
     });
+    window.TaskMore.tomorrowRows({ T, lang: LANG, data, key: ui.key, open: !!ui.tmrOpen, toggle: () => { ui.tmrOpen = !ui.tmrOpen; renderToday(); }, changed: () => { persist(); renderToday(); } })
+      .forEach(li => list.appendChild(li));
     renderBlocks();
     window.BJ.dress($('todayView'));
     checkBlockDone();
@@ -362,15 +364,23 @@
     day.tasks = order; day.customOrder = true; persist(); renderToday();
   }
 
+  function setAddTmr(on) {
+    ui.addTmr = on; $('addTmr').classList.toggle('on', on); $('addTmr').setAttribute('aria-pressed', String(on));
+    $('addInput').placeholder = on ? T('내일 할 일 미리 적기 · {d}', { d: L.label(L.addDays(ui.key, 1)) }) : T('할 일 추가 · 앞에 u 나 * 붙이면 표시');
+  }
+  $('addTmr').addEventListener('click', () => { setAddTmr(!ui.addTmr); $('addInput').focus(); });
   $('addForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const p = L.parseInput($('addInput').value);
     if (!p.text) return;
-    const nt = L.newTask(p, new Date()); nt.block = typeof ui.blockView === 'number' ? ui.blockView : curBlock();
-    today().tasks.push(nt);
+    const target = ui.addTmr ? L.ensureDay(data, L.addDays(ui.key, 1)) : today();     // "내일": written ahead for tomorrow
+    const nt = L.newTask(p, new Date());
+    if (!ui.addTmr) nt.block = typeof ui.blockView === 'number' ? ui.blockView : curBlock();
+    target.tasks.push(nt);
+    if (ui.addTmr) ui.tmrOpen = true;
     if (p.sub) {                                       // "ㄴ ..." goes under the last task in this view
-      const tops = L.tree(today().tasks, today().customOrder).filter(x => x.depth === 0 && x.t !== nt && (typeof ui.blockView !== 'number' || x.block === ui.blockView));
-      if (tops.length) window.TaskMore.makeChild(today(), nt, tops[tops.length - 1].t);
+      const tops = L.tree(target.tasks, target.customOrder).filter(x => x.depth === 0 && x.t !== nt && (ui.addTmr || typeof ui.blockView !== 'number' || x.block === ui.blockView));
+      if (tops.length) window.TaskMore.makeChild(target, nt, tops[tops.length - 1].t);
     }
     $('addInput').value = '';
     persist(); renderToday();

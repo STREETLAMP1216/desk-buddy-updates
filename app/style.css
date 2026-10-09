@@ -299,3 +299,13 @@ body.char-off .bubble { bottom: calc(var(--add-h) + 4px); } body.char-off.no-add
 
 .task .cue { display: block; font-size: .8em; color: var(--mint-deep); opacity: .85; margin-top: 1px; }
 .mp-cue { flex: 1 1 180px; }
+
+/* 내일: write tomorrow's tasks ahead */
+.tmr-toggle { flex: none; border: 1.5px solid var(--line); background: var(--paper); border-radius: 10px; padding: 0 10px; height: 42px; font: inherit; font-size: 13px; color: var(--muted); }
+.tmr-toggle.on { background: var(--mint); border-color: var(--ink); color: var(--ink); font-weight: 700; }
+.task-list .sec-tmr { color: var(--mint-deep); border-top: 1px dashed var(--line); margin-top: 6px; }
+.task.tmr { opacity: .85; }
+.task.tmr .glyph-s { width: 30px; text-align: center; font-family: 'Gowun Dodum', sans-serif; font-size: 18px; flex: 0 0 auto; }
+.task .tmr-x { width: 36px; height: 34px; border: 1px solid var(--line); background: var(--paper); border-radius: 7px; cursor: pointer; font-size: 12px; opacity: .7; flex: none; }
+.task .tmr-x:hover { opacity: 1; }
+.add-bar .tmr-toggle { white-space: nowrap; flex: none; }

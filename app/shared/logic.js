@@ -42,13 +42,23 @@
       s = s.slice(m[0].length);
     }
     t.text = s.trim();
+    // "10:00 치과" / "10:00-11:30 회의": a time at the front becomes the time (or time range)
+    const tm = t.text.match(/^(\d{1,2}):(\d{2})(?:\s*[-~–]\s*(\d{1,2}):(\d{2}))?\s+(.+)$/);
+    if (tm && +tm[1] < 24 && +tm[2] < 60) {
+      t.time = `${tm[1].padStart(2, '0')}:${tm[2]}`;
+      if (tm[3] && +tm[3] < 24 && +tm[4] < 60) t.end = `${tm[3].padStart(2, '0')}:${tm[4]}`;
+      t.text = tm[5].trim();
+    }
     return t;
   }
 
   let seq = 0;
   function newTask(parsed, now) {
     seq += 1;
-    return { id: `${(now || new Date()).getTime().toString(36)}-${seq}`, text: parsed.text, u: !!parsed.u, star: !!parsed.star, kind: parsed.kind || 'task', status: 'open' };
+    const t = { id: `${(now || new Date()).getTime().toString(36)}-${seq}`, text: parsed.text, u: !!parsed.u, star: !!parsed.star, kind: parsed.kind || 'task', status: 'open' };
+    if (parsed.time) t.time = parsed.time;
+    if (parsed.end) t.end = parsed.end;
+    return t;
   }
 
   function ensureDay(data, key) {

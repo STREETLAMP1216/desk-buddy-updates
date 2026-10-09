@@ -129,5 +129,30 @@
   }
   function close() { pending = null; }
 
-  root.TaskMore = { panel, close, makeChild, unChild, addChild, remove, setBlock, kids };
+  // tomorrow, written ahead: a folded section at the bottom of today's list (kept or removed here; ticked off tomorrow)
+  // ctx: { T, data, key (today), open, toggle(), changed() }
+  function tomorrowRows(ctx) {
+    const { T } = ctx, tk = L.addDays(ctx.key, 1), d = ctx.data.days && ctx.data.days[tk];
+    const items = d ? L.tree(d.tasks || [], d.customOrder).filter(x => x.t.status === 'open') : [];
+    if (!items.length) return [];
+    const head = el('li', 'sec sec-tmr');
+    head.appendChild(document.createTextNode(T('내일 {d} · 미리 적은 {n}개', { d: L.label(tk), n: items.length })));
+    const tog = el('button', 'sec-btn', ctx.open ? T('접기') : T('펼치기')); tog.addEventListener('click', ctx.toggle);
+    const btns = el('span', 'sec-btns'); btns.appendChild(tog); head.appendChild(btns);
+    const out = [head];
+    if (ctx.open) items.forEach(({ t, depth }) => {
+      const li = el('li', 'task tmr' + (depth ? ' sub' : ''));
+      li.appendChild(el('span', 'marks', (t.u ? 'u' : '') + (t.star ? '*' : '')));
+      li.appendChild(el('span', 'glyph-s', L.glyph(t)));
+      const tx = el('span', 'text');
+      const w = L.whenText(t, ctx.lang); if (w) tx.appendChild(el('span', 'when' + (t.time ? ' at' : ''), w));
+      tx.appendChild(document.createTextNode(t.text)); li.appendChild(tx);
+      const x = el('button', 'tmr-x', '✕'); x.setAttribute('aria-label', T('지우기'));
+      x.addEventListener('click', () => { remove(d, t); ctx.changed(); });
+      li.appendChild(x); out.push(li);
+    });
+    return out;
+  }
+
+  root.TaskMore = { tomorrowRows, panel, close, makeChild, unChild, addChild, remove, setBlock, kids };
 })(typeof window !== 'undefined' ? window : globalThis);
