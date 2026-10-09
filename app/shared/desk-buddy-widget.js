@@ -25,9 +25,9 @@ const THEMES = {
   suu: { name: '수우', names: { en: 'Suu', ja: 'すう' }, mint: '#AAC7E7', deep: '#3E679A', soft: '#F0F4FA', line: '#D3DCE8' }
 };
 const WORDS = {
-  ko: { block: '블럭', left: '남은 거', allDone: '오늘 할 일 다 끝냈어 X', none: '아직 적은 게 없어', next: '다음', noEvent: '남은 일정 없음', noMemo: '메모 없음', noU: 'u 할 일 없음', today: '오늘', more: '그 외 {n}개', routine: '루틴' },
-  en: { block: 'Block', left: 'left', allDone: 'All done today X', none: 'Nothing written yet', next: 'Next', noEvent: 'No more events', noMemo: 'No memos', noU: 'No u tasks', today: 'Today', more: '{n} more', routine: 'Routine' },
-  ja: { block: 'ブロック', left: '残り', allDone: '今日のタスク全部終わった X', none: 'まだ何もないよ', next: '次', noEvent: '残りの予定なし', noMemo: 'メモなし', noU: 'u タスクなし', today: '今日', more: 'ほか {n}件', routine: 'ルーティン' }
+  ko: { block: '블럭', left: '남은 거', allDone: '오늘 할 일 다 끝냈어 X', none: '아직 적은 게 없어', next: '다음', noEvent: '남은 일정 없음', noMemo: '메모 없음', noU: 'u 할 일 없음', today: '오늘', more: '그 외 {n}개', routine: '루틴', blockDone: '블럭 {n} 다 끝냈어 X', nextBlock: '다음 · 블럭 {n}', noBlock: '블럭 없음' },
+  en: { block: 'Block', left: 'left', allDone: 'All done today X', none: 'Nothing written yet', next: 'Next', noEvent: 'No more events', noMemo: 'No memos', noU: 'No u tasks', today: 'Today', more: '{n} more', routine: 'Routine', blockDone: 'Block {n} all done X', nextBlock: 'Next · block {n}', noBlock: 'No block' },
+  ja: { block: 'ブロック', left: '残り', allDone: '今日のタスク全部終わった X', none: 'まだ何もないよ', next: '次', noEvent: '残りの予定なし', noMemo: 'メモなし', noU: 'u タスクなし', today: '今日', more: 'ほか {n}件', routine: 'ルーティン', blockDone: 'ブロック{n} 全部終わった X', nextBlock: '次 · ブロック{n}', noBlock: 'ブロックなし' }
 };
 const WEEK = { ko: ['일', '월', '화', '수', '목', '금', '토'], en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], ja: ['日', '月', '火', '水', '木', '金', '土'] };
 
@@ -178,7 +178,10 @@ function model(e, now) {
     .concat(day.tasks.filter(t => t.block === n && (t.kind === 'task' || t.kind === 'event')).map(glyph)));
   const who = ((val('s|names') || {})[ch]) || (lang !== 'ko' && THEMES[ch].names[lang]) || THEMES[ch].name;
   return { ch, lang, th: THEMES[ch], W: WORDS[lang], key, day, done, total, open, events, tomorrow, notes: notesAll, blocks, who,
-    current: open.filter(x => x.block === day.block), us: open.filter(x => x.u), routines: day.routines,
+    current: open.filter(x => x.block === day.block),
+    after: (() => { for (let n = day.block + 1; n <= 6; n++) { const xs = open.filter(x => x.block === n); if (xs.length) return { n, items: xs }; }
+      const loose = open.filter(x => !x.block); if (loose.length) return { n: 0, items: loose };
+      for (let n = 1; n < day.block; n++) { const xs = open.filter(x => x.block === n); if (xs.length) return { n, items: xs }; } return null; })(), us: open.filter(x => x.u), routines: day.routines,
     callMe: val('s|callMe'), callMeName: val('s|callMeName'), meals: { lunch: val('s|lunch') || '12:30', dinner: val('s|dinner') || '18:30', snack: val('s|snack') || '15:30' } };
 }
 
@@ -344,7 +347,16 @@ function parts(col, cfg, m0, width, budget, fs, family) {
       blockGrid(col, m, width); used += 2.3;
     } else if (p === 'now') {
       if (!cfg.parts.includes('progress')) { headLine(col, m, fs); col.addSpacer(2); used += 1; }
-      used += list(col, m.current.length ? m.current : m.open, m, fs, Math.max(1, Math.floor(room())), m.total ? m.W.allDone : m.W.none, true);
+      if (m.current.length || !m.after) used += list(col, m.current, m, fs, Math.max(1, Math.floor(room())), m.total ? m.W.allDone : m.W.none, true);
+      else {
+        // this block is finished: say so, then show what's next (labelled, so it doesn't look like it's in this block)
+        txt(col, m.W.blockDone.replace('{n}', m.day.block), fs, RED, { lines: 1 }); used += 1;
+        if (room() >= 2) {
+          col.addSpacer(3);
+          txt(col, m.after.n ? m.W.nextBlock.replace('{n}', m.after.n) : m.W.noBlock, fs - 3, m.th.deep, { bold: true }); used += 0.7;
+          used += list(col, m.after.items, m, fs, Math.max(1, Math.floor(room())), '', false);
+        }
+      }
     } else if (p === 'tasks') {
       if (!cfg.parts.includes('progress') && !cfg.parts.includes('now')) { headLine(col, m, fs); col.addSpacer(2); used += 1; }
       const rest = cfg.parts.includes('now') ? m.open.filter(x => x.block !== m.day.block) : m.current.concat(m.open.filter(x => x.block !== m.day.block));
@@ -471,7 +483,7 @@ function footer(stack, m, info, showEvent) {
 function buildLock(m, info, family, param) {
   const w = new ListWidget();
   w.refreshAfterDate = new Date(Date.now() + 5 * 60000);   // ask iOS for every 5 minutes (it decides; usually 5–15)
-  const next = (m.current[0] || m.open[0]);
+  const next = (m.current[0] || (m.after && m.after.items[0]));
   const ev = m.events.find(t => t.time);
   if (family === 'accessoryInline') {
     const s = m.total && !m.open.length ? `X ${m.W.allDone}` : `${m.W.block} ${m.day.block} · ${m.done}/${m.total}${next ? ' · ' + next.text : ''}`;
@@ -489,7 +501,8 @@ function buildLock(m, info, family, param) {
   const want = parseParam(param, 'small').parts;
   const t1 = w.addText(`${m.W.block} ${m.day.block} · ${m.done}/${m.total}`); t1.font = Font.boldSystemFont(13);
   const rows = want.includes('events') && ev ? [`○ ${ev.time} ${ev.text}`] : [];
-  (m.current.length ? m.current : m.open).slice(0, 2 - rows.length).forEach(x => rows.push(`${x.routine ? '·' : glyph(x)} ${x.u ? 'u ' : ''}${x.text}`));
+  if (m.current.length) m.current.slice(0, 2 - rows.length).forEach(x => rows.push(`${x.routine ? '·' : glyph(x)} ${x.u ? 'u ' : ''}${x.text}`));
+  else if (m.after) { if (rows.length < 2) rows.push(m.W.blockDone.replace('{n}', m.day.block)); if (rows.length < 2) rows.push(`→ ${m.after.items[0].text}`); }
   if (!rows.length) rows.push(m.total ? m.W.allDone : m.W.none);
   rows.forEach(s => { const t = w.addText(s); t.font = Font.systemFont(12); t.lineLimit = 1; });
   return w;
