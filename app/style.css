@@ -285,3 +285,4 @@ body.char-off .add-bar { padding-right: 12px; }
 .mp-edit { display: flex; }
 .mp-edit input { flex: 1 1 auto; min-width: 0; border: 1px solid var(--line); border-radius: 9px; padding: 6px 10px; font: inherit; background: #fff; }
 .mp-edit input:focus { border-color: var(--ink); outline: none; }
+body.char-off .bubble { bottom: calc(var(--add-h) + 4px); } body.char-off.no-add .bubble { bottom: 6px; }

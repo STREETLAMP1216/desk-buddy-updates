@@ -63,6 +63,9 @@ window.ASSETS = {
   "wrapup",
   "wrapup_zero"
  ],
+ "plain": [
+  "badge"
+ ],
  "shiori": [
   "away",
   "back",

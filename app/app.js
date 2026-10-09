@@ -74,6 +74,7 @@
     return 'memo_open';
   }
   function renderBuddy() {
+    if (CH.plain) { if ($('buddyImg').getAttribute('src')) $('buddyImg').removeAttribute('src'); return; }
     let name = Date.now() < pose.until && pose.react && has(pose.react) ? pose.react : basePose();
     if (name === 'memo_open' && pose.blink && has('memo_closed')) name = 'memo_closed';
     const src = A(name);
@@ -145,7 +146,7 @@
   }
   function setCharacter(id, quiet) {
     CH = CHARS[id] || CHARS.shiori;
-    applyTheme(); renderBuddy(); renderCharPick();
+    applyTheme(); applyCharSize(); renderBuddy(); renderCharPick();
     if (!quiet) { hop(); sayKind('switchIn'); }
   }
 
@@ -553,7 +554,10 @@
   $('setCharSize').addEventListener('change', () => { data.settings.mCharSize = $('setCharSize').value; saveLocal(); applyCharSize(); });
   $('setChatter').addEventListener('change', () => { data.settings.mChatter = $('setChatter').value; saveLocal(); });
   [['setLunch', 'lunch'], ['setSnack', 'snack'], ['setDinner', 'dinner']].forEach(([id, k]) => $(id).addEventListener('change', () => { if ($(id).value) { data.settings[k] = $(id).value; persist(); renderBuddy(); } }));
-  function applyCharSize() { const v = data.settings.mCharSize || 'M'; ['L', 'M', 'S', 'off'].forEach(x => document.body.classList.toggle('char-' + x, x === v)); }
+  function applyCharSize() {
+    const v = CH.plain ? 'off' : data.settings.mCharSize || 'M';        // 알림만: no figure in the corner, just the bubble
+    ['L', 'M', 'S', 'off'].forEach(x => document.body.classList.toggle('char-' + x, x === v));
+  }
 
   // alarms: the same list as the PC (they ring on the PC, and as phone notifications through the Scriptable widget)
   const alarms = () => data.settings.alarms || (data.settings.alarms = []);

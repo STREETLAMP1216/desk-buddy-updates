@@ -22,6 +22,7 @@ const KEY_NAME = 'desk-buddy-sync-code';
 const THEMES = {
   shiori: { name: '시오리', names: { en: 'Shiori', ja: 'しおり' }, mint: '#A8DCC6', deep: '#4E8A6B', soft: '#F2F7F4', line: '#D6DED9' },
   fubuki: { name: '후부키', names: { en: 'Fubuki', ja: 'ふぶき' }, mint: '#EBDB9C', deep: '#8A7224', soft: '#FAF6E8', line: '#E5DDC4' },
+  plain: { name: '알림만', names: { en: 'Notices only', ja: 'お知らせだけ' }, plain: true, mint: '#D9DEE4', deep: '#4A5563', soft: '#F4F6F8', line: '#DDE2E8' },
   suu: { name: '수우', names: { en: 'Suu', ja: 'すう' }, mint: '#AAC7E7', deep: '#3E679A', soft: '#F0F4FA', line: '#D3DCE8' }
 };
 const WORDS = {
@@ -206,7 +207,7 @@ async function image(path) {
   try { const img = await new Request(APP + path).loadImage(); fm.writeImage(p, img); return img; } catch (e) { return fm.fileExists(p) ? fm.readImage(p) : null; }
 }
 async function lineBank(ch, lang) {
-  const file = lang === 'ko' ? { shiori: 'lines.js', fubuki: 'lines_fubuki.js', suu: 'lines_suu.js' }[ch] : `lines/${ch}_${lang}.js`;
+  const file = ch === 'plain' ? 'lines_plain.js' : lang === 'ko' ? { shiori: 'lines.js', fubuki: 'lines_fubuki.js', suu: 'lines_suu.js' }[ch] : `lines/${ch}_${lang}.js`;
   const p = cache('db-lines-' + file.replace(/\//g, '_'));
   let code = null;
   if (fm.fileExists(p) && Date.now() - fm.modificationDate(p).getTime() < 86400000) code = fm.readString(p);
@@ -399,6 +400,7 @@ function parts(col, cfg, m0, width, budget, fs, family) {
 const SIZES = { small: [158, 158], medium: [338, 158], large: [338, 354], extraLarge: [715, 354] };
 async function buildHome(m, info, family, param) {
   const cfg = parseParam(param, family);
+  if (m.th.plain) cfg.charMode = null;             // 알림만: no drawings, just the words
   const [Wd, Ht] = SIZES[family] || SIZES.medium;
   const w = new ListWidget();
   w.backgroundColor = C(m.th.soft);
@@ -522,7 +524,7 @@ async function schedule(e, m) {
       const when = at(key, t.time, EVENT_LEAD_MIN);
       if (when <= now) continue;
       const n = new Notification();
-      n.title = `○ ${t.time} ${t.text}`; n.body = `${m.who}: ${L()}`;
+      n.title = `○ ${t.time} ${t.text}`; n.body = m.th.plain ? L() : `${m.who}: ${L()}`;
       n.threadIdentifier = THREAD; n.identifier = `db-ev-${key}-${t.id}`; n.openURL = APP; n.setTriggerDate(when);
       await n.schedule();
     }

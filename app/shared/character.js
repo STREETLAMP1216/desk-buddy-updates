@@ -46,6 +46,21 @@
         ['같이 있는 애', '왕꼬 — 골든 리트리버 강아지. 간식 냄새에 제일 먼저 달려와'],
         ['버릇', '아침엔 안경 없이 멍하다가, 첫 할 일 끝내면 안경 쓰고 시동. 음악 틀면 헤드폰 끼고 리듬 탐']
       ]
+    },
+    // no character: a small notebook badge and plain notices only
+    plain: {
+      id: 'plain',
+      plain: true,
+      name: '알림만',
+      names: { en: 'Notices only', ja: 'お知らせだけ' },
+      hanja: '캐릭터 없이',
+      theme: { mint: '#D9DEE4', deep: '#4A5563', hover: '#C9D0D8', soft: '#F4F6F8', line: '#DDE2E8' },
+      quote: '필요한 것만, 짧게 알려 드려요.',
+      facts: [
+        ['모양', '작은 수첩 아이콘만 떠 있어요. 누르면 할 일 창, 끌어서 옮기기.'],
+        ['말', '다음 할 일·식사 시간·마무리·배터리 같은 알림만, 꾸밈말 없이.'],
+        ['조용히', '잡담은 안 해요. 말 수 설정은 그대로 따라요.']
+      ]
     }
   };
   const api = { CHARACTERS, current: CHARACTERS.shiori };
