@@ -153,7 +153,7 @@ function readDay(e, key) {
   tasks.sort((a, b) => (a.id in pos ? pos[a.id] : 1e9) - (b.id in pos ? pos[b.id] : 1e9));
   const ordered = val(`c|${key}`) ? tasks : tasks.map((t, i) => ({ t, i })).sort((a, b) => (a.t.u === b.t.u ? a.i - b.i : a.t.u ? -1 : 1)).map(x => x.t);
   const [y, m, d] = key.split('-').map(Number), dow = new Date(y, m - 1, d).getDay();
-  const routines = (val('s|routines') || DEFAULT_ROUTINES).filter(r => (r.days || []).includes(dow)).map(r => ({ ...r, done: !!val(`r|${key}|${r.id}`) }));
+  const routines = (val('s|routines') || DEFAULT_ROUTINES).filter(r => (r.days || []).includes(dow)).filter(r => val(`r|${key}|${r.id}`) !== 'cancel').map(r => ({ ...r, done: !!val(`r|${key}|${r.id}`) }));
   return { tasks: ordered, routines, block: val(`b|${key}`) || 1 };
 }
 

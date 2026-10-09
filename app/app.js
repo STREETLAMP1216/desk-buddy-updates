@@ -168,7 +168,8 @@
       const num = document.createElement('span'); num.className = 'bn'; num.textContent = n; cell.appendChild(num);
       const gl = document.createElement('span'); gl.className = 'bg';
       L.routinesFor(ui.key, routines()).filter(r => r.block === n).forEach(r => {
-        const s = document.createElement('i'), dn = !!d.routines[r.id]; s.textContent = dn ? 'X' : '·'; s.className = 'g-routine' + (dn ? ' g-done' : ''); gl.appendChild(s);
+        const st = L.routineState(d, r.id); if (st === 'cancel') return;
+        const s = document.createElement('i'), dn = st === 'done'; s.textContent = dn ? 'X' : '·'; s.className = 'g-routine' + (dn ? ' g-done' : ''); gl.appendChild(s);
       });
       L.ordered(d.tasks, d.customOrder).filter(t => t.block === n && (t.kind === 'task' || t.kind === 'event')).forEach(t => {
         const s = document.createElement('i'); s.textContent = blockGlyph(t); s.className = 'g-' + (t.kind === 'event' ? 'event' : t.status); gl.appendChild(s);
@@ -194,7 +195,7 @@
   function checkBlockDone() {
     const d = today(), cur = curBlock();
     const inBlock = d.tasks.filter(t => t.block === cur && t.kind === 'task').map(t => t.status)
-      .concat(L.routinesFor(ui.key, routines()).filter(r => r.block === cur).map(r => (d.routines[r.id] ? 'done' : 'open')));
+      .concat(L.routinesFor(ui.key, routines()).filter(r => r.block === cur).map(r => L.routineState(d, r.id)).filter(s => s !== 'cancel'));
     if (!inBlock.length || inBlock.includes('open') || !inBlock.includes('done') || cur >= 6) return;
     if (d.fired['block' + cur]) return;
     d.fired['block' + cur] = true; saveLocal();
@@ -260,14 +261,14 @@
   function mk(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; if (tag === 'button') e.type = 'button'; return e; }
 
   function routineRow(r, day) {
-    const done = !!day.routines[r.id];
-    const li = mk('li', 'task routine-row' + (done ? ' done' : ''));
+    const state = L.routineState(day, r.id), done = state === 'done';
+    const li = mk('li', 'task routine-row' + (done ? ' done' : '') + (state === 'cancel' ? ' cancelled' : ''));
     li.appendChild(mk('span', 'marks'));
     const bk = mk('button', 'blk' + (r.block ? '' : ' none'), r.block || '–'); bk.setAttribute('aria-label', T('블럭 고르기'));
     bk.addEventListener('click', () => { ui.openActs = ui.openActs === 'r:' + r.id ? null : 'r:' + r.id; renderToday(); });
     li.appendChild(bk);
     const g = mk('button', 'glyph' + (done ? ' done' : ''), done ? 'X' : '·');
-    g.addEventListener('click', () => { day.routines[r.id] = !day.routines[r.id]; if (!day.routines[r.id]) delete day.routines[r.id]; persist(); renderToday(); if (day.routines[r.id]) praise(); });
+    g.addEventListener('click', () => { if (state === 'cancel') { delete day.routines[r.id]; persist(); renderToday(); return; } day.routines[r.id] = !day.routines[r.id]; if (!day.routines[r.id]) delete day.routines[r.id]; persist(); renderToday(); if (day.routines[r.id]) praise(); });
     li.appendChild(g);
     li.appendChild(mk('span', 'text', r.label));
     if (ui.openActs === 'r:' + r.id) {
@@ -278,7 +279,11 @@
         b.addEventListener('click', () => { const x = routines().find(y => y.id === r.id); if (x) x.block = n || undefined; ui.openActs = null; persist(); renderToday(); });
         row.appendChild(b);
       });
-      acts.appendChild(row); li.appendChild(acts);
+      acts.appendChild(row);
+      const cx = mk('button', state === 'cancel' ? 'on' : '', state === 'cancel' ? '↺ ' + T('취소선 지우기') : 'S̶ ' + T('오늘만 취소선'));
+      cx.addEventListener('click', () => { if (state === 'cancel') delete day.routines[r.id]; else day.routines[r.id] = 'cancel'; ui.openActs = null; persist(); renderToday(); });
+      acts.appendChild(cx);
+      li.appendChild(acts);
     }
     return li;
   }
@@ -703,7 +708,7 @@
     const day = data.days[key];
     if (q.routine) {
       const r = routines().find(x => x.id === id); if (!r || !day) return;
-      const done = !!day.routines[id];
+      const done = L.routineState(day, id) === 'done';
       say(done ? T('"{t}" 이미 X야. 되돌릴까?', { t: r.label }) : T('"{t}" X 칠까?', { t: r.label }), { buttons: [
         { label: done ? T('되돌리기') : 'X', primary: true, run: () => { if (done) delete day.routines[id]; else day.routines[id] = true; persist(); renderToday(); if (!done) praise(); } }, { label: T('아니') }] });
       return;

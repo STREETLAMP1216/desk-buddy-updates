@@ -55,6 +55,11 @@
     const done = () => { pending = null; ctx.changed(); };
     const open = t.status === 'open';
 
+    // a line through it: not doing it after all
+    if (open || t.status === 'cancelled') {
+      const r0 = row(T('취소'));
+      btn(r0, t.status === 'cancelled' ? '↺ ' + T('취소선 지우기') : 'S̶ ' + T('취소선 긋기'), () => { L.toggleCancel(day, t.id); done(); }, t.status === 'cancelled');
+    }
     // what it is
     if (open) {
       const r = row(T('종류'));

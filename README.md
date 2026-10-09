@@ -1,6 +1,6 @@
 # 책상 친구 업데이트
 
-최신 버전: **v0.15.2** — 블럭 누르기: 한 번 = 그 블럭 할 일 위로, 두 번 = 그 블럭만, 세 번 = 전체. 다음 블럭으로 넘어가면 그 블럭 할 일이 위로
+최신 버전: **v0.15.3** — 취소선: 할 일은 ⋯ › 취소선 긋기, 루틴은 오늘만 취소선 (개수에서 빠져요)
 
 처음 설치: [DeskBuddy-latest.zip](https://raw.githubusercontent.com/STREETLAMP1216/desk-buddy-updates/main/DeskBuddy-latest.zip) 을 받아 압축을 풀고 `install.bat`.
 이후 업데이트는 프로그램이 알아서 확인해요.

@@ -90,7 +90,7 @@
     const tasks = day.tasks.filter(t => t.kind === 'task');
     let done = tasks.filter(t => t.status === 'done').length;
     let open = tasks.filter(t => t.status === 'open').length;
-    (routines || []).forEach(r => { if (day.routines && day.routines[r.id]) done++; else open++; });
+    (routines || []).forEach(r => { const s = day.routines && day.routines[r.id]; if (s === 'cancel') return; if (s) done++; else open++; });   // a struck-out routine doesn't count that day
     return { done, open, total: done + open };
   }
 
@@ -184,9 +184,21 @@
     return '';
   }
 
+  // a line through it: not happening after all (that day was different). Its open sub-items go with it.
+  function strike(s) { return Array.from(String(s)).map(c => (c === ' ' ? c : c + '\u0336')).join(''); }
+  function toggleCancel(day, id) {
+    const t = day.tasks.find(x => x.id === id);
+    if (!t || (t.status !== 'open' && t.status !== 'cancelled')) return null;
+    const to = t.status === 'open' ? 'cancelled' : 'open';
+    t.status = to;
+    day.tasks.filter(c => c.parent === t.id && c.status === (to === 'cancelled' ? 'open' : 'cancelled')).forEach(c => { c.status = to; });
+    return to;
+  }
+  function routineState(day, id) { const s = day.routines && day.routines[id]; return s === 'cancel' ? 'cancel' : s ? 'done' : 'open'; }
   function toggleDone(day, id) {
     const t = day.tasks.find(x => x.id === id);
     if (!t || (t.kind !== 'task' && t.kind !== 'event')) return null;     // events can be ticked off too (○ → X)
+    if (t.status !== 'open' && t.status !== 'done') return null;
     if (t.status === 'open') t.status = 'done';
     else if (t.status === 'done') t.status = 'open';
     return t.status;
@@ -203,13 +215,14 @@
     const marks = (t.u ? 'u ' : '') + (t.star ? '* ' : '');
     const to = t.status === 'scheduled' && t.to ? ` → ${t.to.slice(5).replace('-', '/').replace(/^0/, '').replace('/0', '/')}` : '';
     const when = whenText(t);
-    return `${marks}${glyph(t)}  ${when ? when + ' ' : ''}${t.text}${to}`;
+    const body = `${when ? when + ' ' : ''}${t.text}`;
+    return `${marks}${glyph(t)}  ${t.status === 'cancelled' ? strike(body) : body}${to}`;
   }
   function toPlainText(data, key, words) {
     const w = words || { routines: '[매일 루틴]', today: '[오늘]' };
     const day = ensureDay(data, key);
     const out = [label(key), '', w.routines];
-    routinesFor(key, data.settings && data.settings.routines).forEach(r => out.push(`${day.routines[r.id] ? 'X' : '·'}  ${r.label}`));
+    routinesFor(key, data.settings && data.settings.routines).forEach(r => { const s = day.routines[r.id]; out.push(s === 'cancel' ? `·  ${strike(r.label)}` : `${s ? 'X' : '·'}  ${r.label}`); });
     out.push('', w.today);
     tree(day.tasks, day.customOrder).forEach(({ t, depth }) => out.push((depth ? '    ' : '') + line(t)));
     return out.join('\n');
@@ -303,6 +316,6 @@
     return { render, done, strain };
   }
 
-  const api = { dateKey, dayKey, leftovers, carryOver, dropLeftover, tree, kidsOf, durText, whenText, addDays, label, minutes, parseInput, newTask, ensureDay, routinesFor, newRoutine, DEFAULT_ROUTINES, WEEK, setWeek, weatherText, umbrella, sysState, ordered, counts, suggest, migrate, schedule, toggleDone, glyph, line, toPlainText, slot, inWindow, workHours, pose, isOpen };
+  const api = { dateKey, dayKey, leftovers, carryOver, dropLeftover, toggleCancel, routineState, strike, tree, kidsOf, durText, whenText, addDays, label, minutes, parseInput, newTask, ensureDay, routinesFor, newRoutine, DEFAULT_ROUTINES, WEEK, setWeek, weatherText, umbrella, sysState, ordered, counts, suggest, migrate, schedule, toggleDone, glyph, line, toPlainText, slot, inWindow, workHours, pose, isOpen };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Logic = api;
 })(typeof window !== 'undefined' ? window : globalThis);
