@@ -33,7 +33,7 @@
   const A = (name) => `shared/assets/${CH.id}/${name}.png`;
   const charName = (c) => (LANG !== 'ko' && c.names && c.names[LANG]) || c.name;
   const displayName = () => (data.settings.names || {})[CH.id] || charName(CH);
-  const MOOD = { nudge: 'neutral', nudgeEmpty: 'puzzled', poke: 'surprised', switchIn: 'neutral', praise: 'smug', praiseAll: 'smug', schedule: 'smug',
+  const MOOD = { gentle: 'calm', nudge: 'neutral', nudgeEmpty: 'puzzled', poke: 'surprised', switchIn: 'neutral', praise: 'smug', praiseAll: 'smug', schedule: 'smug',
     lunch: 'eat', snack: 'eat', dinner: 'eat', morning: 'sleepy', night: 'sleepy', memo: 'calm', migrate: 'calm', back: 'neutral', evening: 'calm' };
   const REACT = { praise: 'cheer', praiseAll: 'done', migrate: 'migrate', schedule: 'migrate', poke: 'poke', nudge: 'nudge', nudgeEmpty: 'nudge',
     lunch: 'meal', dinner: 'meal', snack: 'snack', back: 'back', evening: 'chat', switchIn: 'chat' };
@@ -127,6 +127,7 @@
     const h = new Date().getHours();
     const slot = h < 11 ? 'morning' : h >= 22 || h < 4 ? 'night' : h >= 18 ? 'evening' : 'back';
     if (!fired.mGreet) { fired.mGreet = true; saveLocal(); return setTimeout(() => sayKind(slot), 700); }
+    if (!fired.gentle && L.leftovers(data, ui.key, 14).length) { fired.gentle = true; saveLocal(); return setTimeout(() => sayKind('gentle'), 700); }
     const c = CNT(today());
     if (Math.random() < 0.5) setTimeout(() => (c.open ? sayKind('back') : c.done ? sayKind('praiseAll') : sayKind(slot)), 700);
   }
@@ -257,6 +258,7 @@
       list.appendChild(row);
     });
     renderBlocks();
+    window.BJ.dress($('todayView'));
     checkBlockDone();
   }
   function mk(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; if (tag === 'button') e.type = 'button'; return e; }
@@ -309,6 +311,7 @@
     if (t.status === 'scheduled' && t.to) tx.appendChild(document.createTextNode(`  → ${L.label(t.to)}`));
     if (t.status === 'migrated') tx.appendChild(document.createTextNode('  → ' + T('내일')));
     if (t.from) tx.appendChild(mk('span', 'from', T('({d}에서)', { d: L.label(t.from) })));
+    if (t.cue && t.status === 'open') tx.appendChild(mk('span', 'cue', '⤷ ' + t.cue));
     tx.addEventListener('click', () => toggleActs(t.id));
     li.appendChild(tx);
     const more = mk('button', 'more', '⋯'); more.setAttribute('aria-label', T('더 보기')); more.addEventListener('click', () => toggleActs(t.id));
@@ -494,6 +497,7 @@
       L.ensureDay(data, key).tasks.push(nt); persist(); renderCal();
     });
     box.appendChild(f);
+    window.BJ.dress($('calView'));
   }
   $('calPrev').addEventListener('click', () => { ui.calMonth = shiftMonth(ui.calMonth, -1); renderCal(); });
   $('calNext').addEventListener('click', () => { ui.calMonth = shiftMonth(ui.calMonth, 1); renderCal(); });

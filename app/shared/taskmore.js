@@ -31,13 +31,17 @@
     order.splice(at, 0, t);
     day.tasks = order; day.customOrder = true;
   }
-  function addChild(day, parent, raw) {
+  function addChild(day, parent, raw, first) {
     const p = L.parseInput(raw);
     if (!p.text) return null;
     const c = L.newTask(p, new Date());
     c.parent = parent.id; c.block = parent.block;
     day.tasks.push(c);
-    placeAfterFamily(day, c, parent);
+    if (first) {                                    // the first small step goes right under the task
+      const order = L.ordered(day.tasks, day.customOrder).filter(x => x !== c);
+      order.splice(order.indexOf(parent) + 1, 0, c);
+      day.tasks = order; day.customOrder = true;
+    } else placeAfterFamily(day, c, parent);
     return c;
   }
   function remove(day, t) { day.tasks = day.tasks.filter(x => x !== t && x.parent !== t.id); }
@@ -87,7 +91,7 @@
       const i = el('input'); i.type = 'text'; i.placeholder = ph; i.enterKeyHint = 'done';
       const b = el('button', '', T('추가')); b.type = 'submit';
       f.append(i, b);
-      f.addEventListener('submit', (e) => { e.preventDefault(); e.stopPropagation(); if (!i.value.trim()) return; addChild(day, t, prefix + i.value); pending = { id: t.id, prefix, ph }; ctx.changed(); });
+      f.addEventListener('submit', (e) => { e.preventDefault(); e.stopPropagation(); if (!i.value.trim()) return; addChild(day, t, prefix + i.value, prefix === 'u '); pending = prefix === 'u ' ? null : { id: t.id, prefix, ph }; ctx.changed(); });
       box.appendChild(f); input = f; setTimeout(() => i.focus(), 0);
     };
     if (!t.parent) {
@@ -97,6 +101,17 @@
       if (prev && !kids(day, t.id).length) btn(r2, '⇥ ' + T('위 항목 아래로'), () => { makeChild(day, t, prev); done(); });
     } else btn(r2, '⇤ ' + T('하위에서 빼기'), () => { unChild(day, t); done(); });
 
+    // planning that makes starting easier: when/where (an if-then plan), and a first step small enough to just do
+    if (t.status === 'open' && t.kind !== 'note') {
+      const rp = row(T('계획'));
+      const f = el('form', 'mp-edit mp-cue'); f.autocomplete = 'off';
+      const i = el('input'); i.type = 'text'; i.value = t.cue || ''; i.placeholder = T('언제·어디서? 예: 점심 먹고 책상에 앉으면'); i.enterKeyHint = 'done';
+      const save = () => { const v = i.value.trim(); if (v !== (t.cue || '')) { t.cue = v || undefined; done(); } };
+      f.addEventListener('submit', (e) => { e.preventDefault(); e.stopPropagation(); save(); });
+      i.addEventListener('blur', save);
+      f.appendChild(i); rp.appendChild(f);
+      if (!t.parent) btn(rp, '✂ ' + T('너무 커? 첫 걸음만'), () => ask('u ', T('5분 안에 끝나는 첫 행동 하나 · 예: 파일 열고 제목 쓰기')));
+    }
     // how long / when
     if (t.kind !== 'note') {
       const r3 = row(T('시간'));

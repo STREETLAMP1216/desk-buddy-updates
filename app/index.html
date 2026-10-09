@@ -27,7 +27,7 @@
   <main id="views">
     <!-- today -->
     <section id="todayView" class="view">
-      <div class="today-tools"><button id="copyBtn" class="mini" type="button">수첩용 복사</button></div>
+      <div class="today-tools"><a class="mini" href="../guide/#symbols" target="_blank" rel="noopener" style="text-decoration:none;margin-right:6px">기호 ?</a><button id="copyBtn" class="mini" type="button">수첩용 복사</button></div>
       <div class="block-nav">
         <button id="blockPrev" type="button" aria-label="이전 블럭">‹</button>
         <span id="blockNow"></span>
@@ -123,6 +123,7 @@
       <a class="ghost wide" style="display:block;text-align:center;text-decoration:none" href="../widget/" target="_blank" rel="noopener">위젯 설명서 열기</a>
 
       <h3 data-k="앱으로 쓰기">앱으로 쓰기</h3>
+      <a class="ghost wide" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px" href="../guide/" target="_blank" rel="noopener">사용 설명서 · 기호 설명</a>
       <p class="sub" id="installHint">아이폰: Safari 공유 버튼 › 홈 화면에 추가. 갤럭시: Chrome 메뉴 › 홈 화면에 추가.</p>
       <div class="row-between"><span class="sub" id="verLabel"></span><button id="checkUpdate" class="pill" type="button">업데이트 확인</button></div>
     </section>
@@ -167,9 +168,11 @@
 <script src="shared/lines/shiori_ja.js"></script>
 <script src="shared/lines/fubuki_ja.js"></script>
 <script src="shared/lines/suu_ja.js"></script>
+<script src="shared/lines_gentle.js"></script>
 <script src="shared/i18n.js"></script>
 <script src="shared/logic.js"></script>
 <script src="shared/taskmore.js"></script>
+<script src="shared/glyph.js"></script>
 <script src="shared/sync.js"></script>
 <script src="version.js"></script>
 <script src="widget-designer.js"></script>

@@ -215,7 +215,7 @@
     const marks = (t.u ? 'u ' : '') + (t.star ? '* ' : '');
     const to = t.status === 'scheduled' && t.to ? ` → ${t.to.slice(5).replace('-', '/').replace(/^0/, '').replace('/0', '/')}` : '';
     const when = whenText(t);
-    const body = `${when ? when + ' ' : ''}${t.text}`;
+    const body = `${when ? when + ' ' : ''}${t.text}${t.cue && t.status === 'open' ? ` (${t.cue})` : ''}`;
     return `${marks}${glyph(t)}  ${t.status === 'cancelled' ? strike(body) : body}${to}`;
   }
   function toPlainText(data, key, words) {

@@ -286,3 +286,16 @@ body.char-off .add-bar { padding-right: 12px; }
 .mp-edit input { flex: 1 1 auto; min-width: 0; border: 1px solid var(--line); border-radius: 9px; padding: 6px 10px; font: inherit; background: #fff; }
 .mp-edit input:focus { border-color: var(--ink); outline: none; }
 body.char-off .bubble { bottom: calc(var(--add-h) + 4px); } body.char-off.no-add .bubble { bottom: 6px; }
+
+/* even bullet marks (see glyph.js): measured on Gowun Dodum — X 0.70em tall, ○ 0.74, > 0.55, ! 0.75, — 0.80 wide, · 0.11 */
+.bj { display: inline-flex; align-items: center; justify-content: center; width: 1em; height: 1em; line-height: 1; vertical-align: middle; }
+.bj > i { display: block; font-style: normal; line-height: 1; }
+.bj-x > i { font-size: 1em; transform: translateY(-.01em); }
+.bj-o > i { font-size: .86em; transform: translateY(-.03em); }
+.bj-dash > i { font-size: .74em; transform: translateY(-.08em); }
+.bj-gt > i, .bj-lt > i { font-size: 1em; transform: translateY(-.05em); }
+.bj-bang > i { font-size: .93em; transform: translateY(-.02em); }
+.bj-dot > i { font-size: 1.4em; transform: translateY(0); }
+
+.task .cue { display: block; font-size: .8em; color: var(--mint-deep); opacity: .85; margin-top: 1px; }
+.mp-cue { flex: 1 1 180px; }
