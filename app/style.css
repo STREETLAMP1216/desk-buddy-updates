@@ -282,3 +282,6 @@ body.char-off .add-bar { padding-right: 12px; }
 .task.cancelled .glyph, .task.cancelled .marks { opacity: .45; }
 .task .acts button.on { background: var(--mint); border-color: var(--mint-deep); }
 .cal-list li.s-cancelled { text-decoration: line-through; color: var(--muted); }
+.mp-edit { display: flex; }
+.mp-edit input { flex: 1 1 auto; min-width: 0; border: 1px solid var(--line); border-radius: 9px; padding: 6px 10px; font: inherit; background: #fff; }
+.mp-edit input:focus { border-color: var(--ink); outline: none; }

@@ -55,6 +55,15 @@
     const done = () => { pending = null; ctx.changed(); };
     const open = t.status === 'open';
 
+    // fix the wording (Enter or leaving the box saves)
+    {
+      const f = el('form', 'mp-edit'); f.autocomplete = 'off';
+      const i = el('input'); i.type = 'text'; i.value = t.text; i.setAttribute('aria-label', T('내용 고치기')); i.enterKeyHint = 'done';
+      const save = () => { const v = i.value.trim(); if (v && v !== t.text) { t.text = v; done(); } };
+      f.addEventListener('submit', (e) => { e.preventDefault(); e.stopPropagation(); save(); });
+      i.addEventListener('blur', save);
+      f.appendChild(i); box.appendChild(f);
+    }
     // a line through it: not doing it after all
     if (open || t.status === 'cancelled') {
       const r0 = row(T('취소'));

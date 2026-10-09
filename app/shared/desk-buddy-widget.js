@@ -17,10 +17,7 @@ const APP = 'https://streetlamp1216.github.io/desk-buddy-updates/app/';
 const NOTIFY = true;            // 일정·알람 알림
 const EVENT_LEAD_MIN = 10;      // 일정 몇 분 전에 알려줄지
 const KEY_NAME = 'desk-buddy-sync-code';
-// taps open the phone app in Safari; the link carries the code (in the # part, which never leaves the phone)
-// so that page is connected too, plus what was tapped: a task to tick off, a memo to open
-let LINK = APP;
-const link = (extra) => LINK + (LINK.includes('#') ? '&' : '#') + extra;
+// the widget is for looking: it has no links (iPhone would open them in the browser, not in the home-screen app)
 
 const THEMES = {
   shiori: { name: '시오리', names: { en: 'Shiori', ja: 'しおり' }, mint: '#A8DCC6', deep: '#4E8A6B', soft: '#F2F7F4', line: '#D6DED9' },
@@ -286,7 +283,6 @@ function progress(stack, m, width) {
 }
 function itemRow(stack, x, m, fs, dimOther) {
   const row = stack.addStack(); row.centerAlignContent(); row.spacing = 4;
-  if (x.id) row.url = link(`${x.routine || x.isRoutine ? 'routine' : 'done'}=${m.key}~${encodeURIComponent(x.id)}`);
   const g = txt(row, x.routine ? '·' : glyph(x), fs + 1, x.routine ? m.th.deep : INK, { bold: true });
   g.font = Font.boldSystemFont(fs + 1);
   const mk = (x.u ? 'u ' : '') + (x.star ? '* ' : '');
@@ -304,7 +300,7 @@ function list(stack, items, m, fs, max, empty, dimOther) {
   return shown.length + (items.length > shown.length ? 1 : 0);
 }
 function blockGrid(stack, m, width) {
-  const row = stack.addStack(); row.spacing = 3; row.url = LINK;
+  const row = stack.addStack(); row.spacing = 3;
   const cw = Math.floor((width - 15) / 6);
   m.blocks.forEach((gs, i) => {
     const n = i + 1, cell = row.addStack(); cell.layoutVertically(); cell.size = new Size(cw, 30); cell.cornerRadius = 6;
@@ -366,7 +362,6 @@ function parts(col, cfg, m0, width, budget, fs, family) {
       if (!evs.length) { txt(col, '○ ' + m.W.noEvent, fs - 1, MUTED, { lines: 1 }); used += 1; continue; }
       evs.slice(0, Math.max(1, Math.floor(room()))).forEach(t => {
         const r = col.addStack(); r.spacing = 5;
-        if (t.id && !t.text.endsWith(' (+1)')) r.url = link(`done=${m.key}~${encodeURIComponent(t.id)}`);
         txt(r, '○', fs, m.th.deep, { bold: true }); if (t.time) txt(r, t.time, fs, m.th.deep, { bold: true }); txt(r, t.text, fs, INK, { lines: 1 });
         used += 1;
       });
@@ -380,7 +375,7 @@ function parts(col, cfg, m0, width, budget, fs, family) {
     } else if (p === 'memo') {
       if (!m.notes.length) { txt(col, m.W.noMemo, fs - 1, MUTED); used += 1; continue; }
       m.notes.slice(0, Math.max(1, Math.floor(room()))).forEach(n => {
-        const r = col.addStack(); r.spacing = 5; r.url = link(`memo=${encodeURIComponent(n.id)}`);
+        const r = col.addStack(); r.spacing = 5;
         txt(r, n.pinned ? '📌' : '—', fs - 1, m.th.deep);
         txt(r, (n.text || '').split('\n').find(s => s.trim()).trim(), fs, INK, { lines: 1 });
         used += 1;
@@ -394,7 +389,7 @@ async function buildHome(m, info, family, param) {
   const cfg = parseParam(param, family);
   const [Wd, Ht] = SIZES[family] || SIZES.medium;
   const w = new ListWidget();
-  w.backgroundColor = C(m.th.soft); w.url = LINK;
+  w.backgroundColor = C(m.th.soft);
   w.refreshAfterDate = new Date(Date.now() + 15 * 60000);
   const padX = family === 'small' ? 12 : 14;
   w.setPadding(family === 'small' ? 12 : 12, padX, 10, padX);
@@ -474,7 +469,7 @@ function footer(stack, m, info, showEvent) {
 
 // lock screen: one line, a small box, or a circle
 function buildLock(m, info, family, param) {
-  const w = new ListWidget(); w.url = LINK;
+  const w = new ListWidget();
   w.refreshAfterDate = new Date(Date.now() + 15 * 60000);
   const next = (m.current[0] || m.open[0]);
   const ev = m.events.find(t => t.time);
@@ -532,7 +527,7 @@ async function schedule(e, m) {
 }
 
 // ======================= in the app: code, previews, designer =======================
-function message(text) { const w = new ListWidget(); w.backgroundColor = C('#F2F7F4'); w.url = LINK; txt(w, text, 13, MUTED); return w; }
+function message(text) { const w = new ListWidget(); w.backgroundColor = C('#F2F7F4'); txt(w, text, 13, MUTED); return w; }
 async function askCode(current) {
   const a = new Alert();
   a.title = '책상 친구 연동 코드';
@@ -593,7 +588,6 @@ async function main() {
   const family = config.widgetFamily || (['small', 'medium', 'large'].includes(action) ? action : 'medium');
   const show = async (w) => { if (inApp) await w[{ small: 'presentSmall', medium: 'presentMedium', large: 'presentLarge' }[family] || 'presentMedium'](); else Script.setWidget(w); };
   if (!code) return show(message('Scriptable 앱에서 이 스크립트를 한 번 실행해 연동 코드를 넣어 주세요.'));
-  LINK = APP + '#join=' + code.replace(/-/g, '');
   let info;
   try { info = await load(code); }
   catch (err) { const w = message('연결이 안 돼요. 잠시 뒤 다시 볼게요.'); w.refreshAfterDate = new Date(Date.now() + 10 * 60000); return show(w); }
