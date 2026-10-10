@@ -368,7 +368,6 @@
     ui.addTmr = on; $('addTmr').classList.toggle('on', on); $('addTmr').setAttribute('aria-pressed', String(on));
     $('addInput').placeholder = on ? T('내일 할 일 미리 적기 · {d}', { d: L.label(L.addDays(ui.key, 1)) }) : T('할 일 추가 · 앞에 u 나 * 붙이면 표시');
   }
-  $('addTmr').addEventListener('click', () => { setAddTmr(!ui.addTmr); $('addInput').focus(); });
   $('addForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const p = L.parseInput($('addInput').value);
