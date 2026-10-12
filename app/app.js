@@ -269,7 +269,7 @@
   function routineRow(r, day) {
     const state = L.routineState(day, r.id), done = state === 'done';
     const li = mk('li', 'task routine-row' + (done ? ' done' : '') + (state === 'cancel' ? ' cancelled' : ''));
-    li.appendChild(mk('span', 'marks'));
+    li.appendChild(mk('span', 'marks', (r.u ? 'u' : '') + (r.star ? '*' : '')));
     const bk = mk('button', 'blk' + (r.block ? '' : ' none'), r.block || '–'); bk.setAttribute('aria-label', T('블럭 고르기'));
     bk.addEventListener('click', () => { ui.openActs = ui.openActs === 'r:' + r.id ? null : 'r:' + r.id; renderToday(); });
     li.appendChild(bk);
@@ -286,6 +286,11 @@
         row.appendChild(b);
       });
       acts.appendChild(row);
+      [['u', 'u'], ['star', '*']].forEach(([k, ch]) => {
+        const b = mk('button', r[k] ? 'on' : '', ch); b.setAttribute('aria-label', r[k] ? T(ch + ' 빼기') : T(ch + ' 붙이기'));
+        b.addEventListener('click', () => { const x = routines().find(y => y.id === r.id); if (x) { if (x[k]) delete x[k]; else x[k] = true; } persist(); renderToday(); });
+        acts.appendChild(b);
+      });
       const cx = mk('button', state === 'cancel' ? 'on' : '', state === 'cancel' ? '↺ ' + T('취소선 지우기') : 'S̶ ' + T('오늘만 취소선'));
       cx.addEventListener('click', () => { if (state === 'cancel') delete day.routines[r.id]; else day.routines[r.id] = 'cancel'; ui.openActs = null; persist(); renderToday(); });
       acts.appendChild(cx);
@@ -632,6 +637,11 @@
     routines().forEach(r => {
       const li = mk('li');
       li.appendChild(mk('span', 'rl', r.label));
+      [['u', 'u'], ['star', '*']].forEach(([k, ch]) => {
+        const b = mk('button', 'rmark' + (r[k] ? ' on' : ''), ch); b.setAttribute('aria-pressed', String(!!r[k]));
+        b.addEventListener('click', () => { if (r[k]) delete r[k]; else r[k] = true; persist(); renderRoutineEditor(); });
+        li.appendChild(b);
+      });
       const del = mk('button', 'del', '✕'); del.setAttribute('aria-label', T('지우기'));
       del.addEventListener('click', () => { data.settings.routines = routines().filter(x => x !== r); persist(); renderRoutineEditor(); });
       li.appendChild(del);

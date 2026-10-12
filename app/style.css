@@ -199,6 +199,8 @@ body.no-add #views { padding-bottom: calc(var(--buddy-h) * .7); }
 .routine-editor li { display: flex; align-items: center; gap: 8px; padding: 8px 2px; border-bottom: 1px dashed var(--line); flex-wrap: wrap; }
 .routine-editor .rl { flex: 1 1 auto; color: var(--mint-deep); }
 .routine-editor .days { display: flex; gap: 3px; flex-basis: 100%; }
+.routine-editor .rmark { width: 32px; height: 30px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-weight: 700; color: var(--muted); }
+.routine-editor .rmark.on { background: var(--mint); border-color: var(--mint-deep); color: var(--ink); }
 .routine-editor .days button { width: 34px; height: 30px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 12px; }
 .routine-editor .days button.on { background: var(--mint); border-color: var(--mint-deep); }
 .routine-editor .del { border: 1px solid var(--line); background: #fff; border-radius: 8px; width: 34px; height: 30px; color: #A94234; }

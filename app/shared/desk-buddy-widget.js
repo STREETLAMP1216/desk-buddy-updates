@@ -165,7 +165,7 @@ function model(e, now) {
   const tasks = day.tasks.filter(t => t.kind === 'task');
   const done = tasks.filter(t => t.status === 'done').length + day.routines.filter(r => r.done).length;
   const total = tasks.filter(t => t.status === 'open' || t.status === 'done').length + day.routines.length;
-  const open = day.routines.filter(r => !r.done).map(r => ({ id: r.id, text: r.label, block: r.block, routine: true, kind: 'task', status: 'open' }))
+  const open = day.routines.filter(r => !r.done).map(r => ({ id: r.id, text: r.label, block: r.block, u: r.u, star: r.star, routine: true, kind: 'task', status: 'open' }))
     .concat(day.tasks.filter(t => (t.kind === 'task' || t.kind === 'event') && t.status === 'open'));
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const events = day.tasks.filter(t => t.kind === 'event' && t.status === 'open')
@@ -368,7 +368,7 @@ function parts(col, cfg, m0, width, budget, fs, family) {
       used += list(col, m.us, m, fs, Math.max(1, Math.floor(room())), m.W.noU);
     } else if (p === 'routines') {
       sectionTitle(col, m.W.routine, m); used += 0.7;
-      const rs = m.routines.map(r => ({ id: r.id, text: r.label, routine: !r.done, isRoutine: true, kind: 'task', status: r.done ? 'done' : 'open', block: r.block }));
+      const rs = m.routines.map(r => ({ id: r.id, text: r.label, routine: !r.done, isRoutine: true, kind: 'task', status: r.done ? 'done' : 'open', block: r.block, u: r.u, star: r.star }));
       used += list(col, rs, m, fs, Math.max(1, Math.floor(room())), '–');
     } else if (p === 'events') {
       const evs = m.events.length ? m.events : m.tomorrow.map(t => ({ ...t, text: t.text + ' (+1)' }));

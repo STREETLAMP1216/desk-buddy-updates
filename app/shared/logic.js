@@ -80,10 +80,16 @@
     const dow = new Date(y, m - 1, d).getDay();
     return (routines || DEFAULT_ROUTINES).filter(r => (r.days || []).includes(dow));
   }
+  // "u 물 마시기" / "* 운동": a routine can carry u and * too (the other marks don't apply to routines)
   function newRoutine(label, days) {
     seq += 1;
-    return { id: `r${Date.now().toString(36)}${seq}`, label: String(label).trim(), days: (days || [0, 1, 2, 3, 4, 5, 6]).slice().sort() };
+    const p = parseInput(label);
+    const r = { id: `r${Date.now().toString(36)}${seq}`, label: (p.text || String(label)).trim(), days: (days || [0, 1, 2, 3, 4, 5, 6]).slice().sort() };
+    if (p.u) r.u = true;
+    if (p.star) r.star = true;
+    return r;
   }
+  function marksOf(x) { return (x && x.u ? 'u ' : '') + (x && x.star ? '* ' : ''); }
 
   // u first (they're quick wins), then the rest; the original order is kept inside each group.
   // Once you've dragged tasks into your own order (custom), that order is kept as it is.
@@ -232,7 +238,7 @@
     const w = words || { routines: '[매일 루틴]', today: '[오늘]' };
     const day = ensureDay(data, key);
     const out = [label(key), '', w.routines];
-    routinesFor(key, data.settings && data.settings.routines).forEach(r => { const s = day.routines[r.id]; out.push(s === 'cancel' ? `·  ${strike(r.label)}` : `${s ? 'X' : '·'}  ${r.label}`); });
+    routinesFor(key, data.settings && data.settings.routines).forEach(r => { const s = day.routines[r.id]; out.push(s === 'cancel' ? `·  ${marksOf(r)}${strike(r.label)}` : `${s ? 'X' : '·'}  ${marksOf(r)}${r.label}`); });
     out.push('', w.today);
     tree(day.tasks, day.customOrder).forEach(({ t, depth }) => out.push((depth ? '    ' : '') + line(t)));
     return out.join('\n');
@@ -326,6 +332,6 @@
     return { render, done, strain };
   }
 
-  const api = { dateKey, dayKey, leftovers, carryOver, dropLeftover, toggleCancel, routineState, strike, tree, kidsOf, durText, whenText, addDays, label, minutes, parseInput, newTask, ensureDay, routinesFor, newRoutine, DEFAULT_ROUTINES, WEEK, setWeek, weatherText, umbrella, sysState, ordered, counts, suggest, migrate, schedule, toggleDone, glyph, line, toPlainText, slot, inWindow, workHours, pose, isOpen };
+  const api = { dateKey, dayKey, leftovers, carryOver, dropLeftover, toggleCancel, routineState, strike, tree, kidsOf, durText, whenText, addDays, label, minutes, parseInput, newTask, ensureDay, routinesFor, newRoutine, marksOf, DEFAULT_ROUTINES, WEEK, setWeek, weatherText, umbrella, sysState, ordered, counts, suggest, migrate, schedule, toggleDone, glyph, line, toPlainText, slot, inWindow, workHours, pose, isOpen };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Logic = api;
 })(typeof window !== 'undefined' ? window : globalThis);
