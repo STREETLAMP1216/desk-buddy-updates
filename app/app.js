@@ -172,10 +172,11 @@
       const gl = document.createElement('span'); gl.className = 'bg';
       L.routinesFor(ui.key, routines()).filter(r => r.block === n).forEach(r => {
         const st = L.routineState(d, r.id); if (st === 'cancel') return;
-        const s = document.createElement('i'), dn = st === 'done'; s.textContent = dn ? 'X' : '·'; s.className = 'g-routine' + (dn ? ' g-done' : ''); gl.appendChild(s);
+        const s = document.createElement('i'), dn = st === 'done'; s.textContent = dn ? 'X' : r.u ? 'u' : '·'; s.className = 'g-routine' + (dn ? ' g-done' : r.u ? ' g-u' : ''); gl.appendChild(s);
       });
       L.ordered(d.tasks, d.customOrder).filter(t => t.block === n && (t.kind === 'task' || t.kind === 'event')).forEach(t => {
-        const s = document.createElement('i'); s.textContent = blockGlyph(t); s.className = 'g-' + (t.kind === 'event' ? 'event' : t.status); gl.appendChild(s);
+        const s = document.createElement('i'); const uu = t.u && t.kind === 'task' && t.status === 'open';   // an open u task shows as u (like in the notebook)
+        s.textContent = uu ? 'u' : blockGlyph(t); s.className = 'g-' + (t.kind === 'event' ? 'event' : t.status) + (uu ? ' g-u' : ''); gl.appendChild(s);
       });
       cell.appendChild(gl);
       cell.addEventListener('click', (e) => { e.stopPropagation(); if (ui.blockView !== n) { ui.blockView = n; ui.blockOnly = false; } else if (!ui.blockOnly) ui.blockOnly = true; else { ui.blockView = null; ui.blockOnly = false; } renderToday(); });

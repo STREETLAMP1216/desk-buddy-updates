@@ -311,3 +311,6 @@ body.char-off .bubble { bottom: calc(var(--add-h) + 4px); } body.char-off.no-add
 .task .tmr-x { width: 36px; height: 34px; border: 1px solid var(--line); background: var(--paper); border-radius: 7px; cursor: pointer; font-size: 12px; opacity: .7; flex: none; }
 .task .tmr-x:hover { opacity: 1; }
 .add-bar .tmr-toggle { white-space: nowrap; flex: none; }
+
+/* open u tasks/routines in the block cells: a u instead of the dot */
+.block .bg i.g-u { font-weight: 700; font-size: .92em; line-height: 1.2; }
