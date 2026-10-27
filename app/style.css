@@ -314,3 +314,6 @@ body.char-off .bubble { bottom: calc(var(--add-h) + 4px); } body.char-off.no-add
 
 /* open u tasks/routines in the block cells: a u instead of the dot */
 .block .bg i.g-u { font-weight: 700; font-size: .92em; line-height: 1.2; }
+
+/* 블럭 쓰기 off */
+body.no-blocks .block-nav, body.no-blocks #blocks, body.no-blocks .task .blk, body.no-blocks .acts .blkrow { display: none; }

@@ -5,7 +5,7 @@
 (function (root) {
   const KEEP_DAYS = 60;          // days older than this aren't synced (they stay where they are)
   const TOMB_DAYS = 45;          // how long a deletion is remembered
-  const SETTINGS = ['routines', 'alarms', 'dayStart', 'character', 'names', 'callMe', 'callMeName', 'lang',
+  const SETTINGS = ['routines', 'alarms', 'blocks', 'dayStart', 'character', 'names', 'callMe', 'callMeName', 'lang',
     'lunch', 'snack', 'dinner', 'wrapUp', 'workStart', 'workEnd'];
   const DEFAULT_SERVER = 'https://desk-buddy-sync.soohwanj97.workers.dev';                          // the shared sync server (Cloudflare Worker)
   const ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // no 0/O, 1/I

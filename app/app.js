@@ -197,6 +197,7 @@
     ] });
   });
   function checkBlockDone() {
+    if (data.settings.blocks === false) return;
     const d = today(), cur = curBlock();
     const inBlock = d.tasks.filter(t => t.block === cur && t.kind === 'task').map(t => t.status)
       .concat(L.routinesFor(ui.key, routines()).filter(r => r.block === cur).map(r => L.routineState(d, r.id)).filter(s => s !== 'cancel'));
@@ -277,7 +278,8 @@
     const g = mk('button', 'glyph' + (done ? ' done' : ''), done ? 'X' : '·');
     g.addEventListener('click', () => { if (state === 'cancel') { delete day.routines[r.id]; persist(); renderToday(); return; } day.routines[r.id] = !day.routines[r.id]; if (!day.routines[r.id]) delete day.routines[r.id]; persist(); renderToday(); if (day.routines[r.id]) praise(); });
     li.appendChild(g);
-    li.appendChild(mk('span', 'text', r.label));
+    const rtx = mk('span', 'text', r.label); rtx.addEventListener('click', () => { ui.openActs = ui.openActs === 'r:' + r.id ? null : 'r:' + r.id; renderToday(); });
+    li.appendChild(rtx);
     if (ui.openActs === 'r:' + r.id) {
       li.classList.add('open-acts');
       const acts = mk('div', 'acts'), row = mk('div', 'blkrow');
@@ -563,6 +565,7 @@
     $('setCallMeName').value = data.settings.callMeName || '';
     $('callMeNameRow').hidden = data.settings.callMe !== 'custom';
     $('setDayStart').value = data.settings.dayStart || '04:00';
+    $('setBlocks').value = data.settings.blocks === false ? 'off' : 'on';
     $('syncServer').value = data.settings.syncServer || '';
     $('syncServer').placeholder = S.DEFAULT_SERVER || 'https://….workers.dev';
     renderRoutineEditor(); renderCharPick(); renderSync();
@@ -632,6 +635,9 @@
   }
   $('checkUpdate').addEventListener('click', () => checkVersion(true));
 
+  // blocks off: no block row, chips or "block done" questions (synced with the PC)
+  function applyBlocks() { document.body.classList.toggle('no-blocks', data.settings.blocks === false); if (data.settings.blocks === false) { ui.blockView = null; ui.blockOnly = false; } }
+  $('setBlocks').addEventListener('change', () => { data.settings.blocks = $('setBlocks').value !== 'off'; persist(); applyBlocks(); renderToday(); });
   $('setDayStart').addEventListener('change', () => { data.settings.dayStart = $('setDayStart').value || '04:00'; persist(); refreshDay(); });
   function renderRoutineEditor() {
     const ul = $('routineEditor'); ul.innerHTML = '';
@@ -677,6 +683,7 @@
   }
   function afterRemote() {
     saveLocal();
+    applyBlocks();
     const lang = ['ko', 'en', 'ja'].includes(data.settings.lang) ? data.settings.lang : 'ko';
     if (lang !== LANG) { location.reload(); return; }
     if (data.settings.character && data.settings.character !== CH.id) setCharacter(data.settings.character, true);
@@ -797,6 +804,7 @@
   renderBuddy(); blinkLoop();
   setInterval(() => refreshDay(), 60000);
   applyCharSize();
+  applyBlocks();
   // chatty: a word now and then while the app is open
   setInterval(() => {
     if (data.settings.mChatter !== 'chatty' || document.visibilityState !== 'visible' || !$('bubble').hidden || editing) return;
