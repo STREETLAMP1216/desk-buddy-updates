@@ -1,9 +1,9 @@
 {
-  "version": "0.15.17",
-  "url": "app-0.15.17.zip",
-  "sha256": "6e11ecf2ed9f7c5a014bbf1463e088cc7ab8691ed0a310a01d73a60c2793f287",
+  "version": "0.15.18",
+  "url": "app-0.15.18.zip",
+  "sha256": "35d25a4b9ba1e8dd7cede1b194e6cba743c49886b62a49fe6d0db412fb34fce5",
   "notes": {
     "ko": "입력 칸의 '내일' 버튼 빼기 (내일 할 일은 달력이나 > 로)"
   },
-  "date": "2026-10-27T06:49:54.899Z"
+  "date": "2026-10-27T06:53:00.808Z"
 }
