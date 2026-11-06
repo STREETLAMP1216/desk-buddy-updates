@@ -394,6 +394,19 @@
     const list = $('views'); setTimeout(() => { list.scrollTop = list.scrollHeight; }, 0);
   });
 
+  // pasting several lines at once (a list tidied up elsewhere): each line becomes a task on the day its heading says
+  $('addInput').addEventListener('paste', (e) => {
+    const text = (e.clipboardData || window.clipboardData).getData('text') || '';
+    if (!/\n/.test(text.trim())) return;
+    const items = L.parseList(text, ui.key);
+    if (!items.length) return;
+    e.preventDefault();
+    const n = L.applyList(data, items, (k) => (k === ui.key ? (typeof ui.blockView === 'number' ? ui.blockView : curBlock()) : null));
+    if (items.some(it => it.key > ui.key)) ui.tmrOpen = true;
+    persist(); renderToday();
+    say(n ? T('{n}개 넣었어. 날짜별로 나눠 뒀어.', { n }) : T('이미 다 들어 있어.'), { force: true });
+  });
+
   // ---------- memos ----------
   const notes = () => data.notes || (data.notes = []);
   const noteTitle = (n) => ((n.text || '').split('\n').find(s => s.trim()) || '').trim();

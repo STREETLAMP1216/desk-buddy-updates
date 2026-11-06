@@ -43,7 +43,7 @@
     }
     t.text = s.trim();
     // "10:00 치과" / "10:00-11:30 회의": a time at the front becomes the time (or time range)
-    const tm = t.text.match(/^(\d{1,2}):(\d{2})(?:\s*[-~–]\s*(\d{1,2}):(\d{2}))?\s+(.+)$/);
+    const tm = t.text.match(/^(\d{1,2}):(\d{2})(?:\s*[-~–]\s*(\d{1,2}):(\d{2})|~)?\s+(.+)$/);
     if (tm && +tm[1] < 24 && +tm[2] < 60) {
       t.time = `${tm[1].padStart(2, '0')}:${tm[2]}`;
       if (tm[3] && +tm[3] < 24 && +tm[4] < 60) t.end = `${tm[3].padStart(2, '0')}:${tm[4]}`;
@@ -244,6 +244,97 @@
     return out.join('\n');
   }
 
+  // ----- pasting a whole list (e.g. one Claude tidied up) -----
+  // "■ 내일 (11/7 토)" / "[오늘]" / "11/6 (금)" are headings that pick the day; routine sections are skipped
+  // (routines already live in the app); indented lines go under the item above.
+  // -> [{ key, parsed, done, sub }]
+  function headingDay(s, baseKey) {
+    const m = s.match(/(\d{1,2})\s*\/\s*(\d{1,2})/);
+    if (m && +m[1] >= 1 && +m[1] <= 12 && +m[2] >= 1 && +m[2] <= 31) return mdKey(+m[1], +m[2], baseKey);
+    if (/모레|day after tomorrow|明後日/i.test(s)) return addDays(baseKey, 2);
+    if (/내일|tomorrow|明日/i.test(s)) return addDays(baseKey, 1);
+    if (/오늘|today|今日/i.test(s)) return baseKey;
+    return null;
+  }
+  function mdKey(mo, d, baseKey) {
+    const by = +baseKey.slice(0, 4), bm = +baseKey.slice(5, 7);
+    let y = by;
+    if (mo - bm > 6) y = by - 1; else if (bm - mo > 6) y = by + 1;      // 1/3 written in December is next year
+    return `${y}-${pad(mo)}-${pad(d)}`;
+  }
+  function isHeading(s) {
+    return /^(■|□|#+\s|=+\s)/.test(s) || /^\[[^\]]+\]$/.test(s) || /^\d{1,2}\/\d{1,2}\s*\([^)]*\)$/.test(s);
+  }
+  function parseList(raw, baseKey) {
+    const out = [];
+    let key = baseKey, skip = false, lastTop = false;
+    String(raw || '').replace(/\r/g, '').split('\n').forEach(line => {
+      if (!line.trim() || /^\s*```/.test(line)) return;
+      const s = line.trim();
+      if (isHeading(s)) {
+        skip = /루틴|routine|ルーティン/i.test(s);
+        const d = headingDay(s, baseKey);
+        if (d) key = d;
+        lastTop = false;
+        return;
+      }
+      if (skip) return;
+      const indented = /^(\s{2,}|\t)/.test(line) && lastTop;
+      // notebook marks the input box doesn't take: X (done), > (moved on), < (to a date)
+      let rest = s, done = false, lt = false, pre = '';
+      for (;;) {
+        const m = rest.match(/^(u|U|\*|X|x|>|<)(\s+|$)/);
+        if (!m) break;
+        if (m[1] === 'X' || m[1] === 'x') done = true;
+        else if (m[1] === '<') lt = true;
+        else if (m[1] !== '>') pre += m[1] + ' ';
+        rest = rest.slice(m[0].length);
+      }
+      let to = key;
+      if (lt) {                                            // "< 세무사 미팅 → 8/27": goes to that date
+        const m = rest.match(/\s*(?:→|->)\s*(\d{1,2})\/(\d{1,2})\s*$/);
+        if (m) { to = mdKey(+m[1], +m[2], baseKey); rest = rest.slice(0, m.index); }
+      }
+      const parsed = parseInput(pre + rest);
+      if (!parsed.text) return;
+      delete parsed.sub;
+      out.push({ key: indented ? out[out.length - 1].key : to, parsed, done, sub: indented });
+      if (!indented) lastTop = true;
+    });
+    // a sub-line keeps the day of the item it sits under
+    for (let i = 0, top = null; i < out.length; i++) { if (out[i].sub && top) out[i].key = top.key; else if (!out[i].sub) top = out[i]; }
+    return out;
+  }
+  // put the parsed list into the days; lines already there (same text) are skipped. -> number added
+  function applyList(data, items, blockFor) {
+    let added = 0, parent = null;
+    const same = (a, b) => a.text.trim() === b.text.trim() && (a.kind || 'task') === (b.kind || 'task');
+    items.forEach(it => {
+      const day = ensureDay(data, it.key);
+      if (it.sub) {
+        if (!parent) return;
+        if (day.tasks.some(t => t.parent === parent.id && same(t, it.parsed))) return;
+        const c = newTask(it.parsed);
+        c.parent = parent.id; if (parent.block != null) c.block = parent.block;
+        if (it.done && (c.kind === 'task' || c.kind === 'event')) c.status = 'done';
+        const i = day.tasks.indexOf(parent); let j = i + 1;
+        while (j < day.tasks.length && day.tasks[j].parent === parent.id) j++;
+        day.tasks.splice(j, 0, c);
+        added++;
+        return;
+      }
+      const dup = day.tasks.find(t => !t.parent && same(t, it.parsed) && t.status !== 'migrated' && t.status !== 'scheduled');
+      if (dup) { parent = dup; return; }
+      const t = newTask(it.parsed);
+      const b = blockFor ? blockFor(it.key) : null;
+      if (b != null) t.block = b;
+      if (it.done && (t.kind === 'task' || t.kind === 'event')) t.status = 'done';
+      day.tasks.push(t);
+      parent = t; added++;
+    });
+    return added;
+  }
+
   // ----- time & pose -----
   function slot(d) {
     const h = d.getHours();
@@ -332,6 +423,6 @@
     return { render, done, strain };
   }
 
-  const api = { dateKey, dayKey, leftovers, carryOver, dropLeftover, toggleCancel, routineState, strike, tree, kidsOf, durText, whenText, addDays, label, minutes, parseInput, newTask, ensureDay, routinesFor, newRoutine, marksOf, DEFAULT_ROUTINES, WEEK, setWeek, weatherText, umbrella, sysState, ordered, counts, suggest, migrate, schedule, toggleDone, glyph, line, toPlainText, slot, inWindow, workHours, pose, isOpen };
+  const api = { dateKey, dayKey, leftovers, carryOver, dropLeftover, toggleCancel, routineState, strike, tree, kidsOf, durText, whenText, addDays, label, minutes, parseInput, newTask, ensureDay, routinesFor, newRoutine, marksOf, DEFAULT_ROUTINES, WEEK, setWeek, weatherText, umbrella, sysState, ordered, counts, suggest, migrate, schedule, toggleDone, glyph, line, toPlainText, parseList, applyList, slot, inWindow, workHours, pose, isOpen };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Logic = api;
 })(typeof window !== 'undefined' ? window : globalThis);
