@@ -1,13 +1,19 @@
 {
-  "version": "0.15.26",
-  "url": "app-0.15.26.zip",
-  "sha256": "f312c55d8e884a3c4654b6874725a5ea46cf5b333d8bbe42eb5aa2ae7f169fee",
+  "version": "0.15.27",
+  "url": "app-0.15.27.zip",
+  "sha256": "5fff71e8baedf85291b67cd2cf759c952bc32654d8e318e4feefc88f26b27112",
   "notes": {
-    "ko": "설정 미리보기가 실제 카드와 같은 크기로 보이고, 모서리를 끌면 카드 폭·높이가 함께 바뀌어요",
-    "en": "The settings preview shows the card at its real size; dragging its corner sets width and height together",
-    "ja": "設定プレビューが実際のカードと同じ大きさに。角をドラッグすると幅と高さが一緒に変わります"
+    "ko": "'글씨 크기'를 '말풍선 글씨 크기'로 이름을 바꾸고, 슬라이더를 움직이면 말풍선이 그 크기로 바로 보여요",
+    "en": "'Text size' is now 'Speech bubble text size', and moving it shows a bubble at that size",
+    "ja": "「文字の大きさ」を「吹き出しの文字の大きさ」に。動かすとその大きさの吹き出しが出ます"
   },
   "changes": [
+    {
+      "v": "0.15.27",
+      "ko": "'글씨 크기'를 '말풍선 글씨 크기'로 이름을 바꾸고, 슬라이더를 움직이면 말풍선이 그 크기로 바로 보여요",
+      "en": "'Text size' is now 'Speech bubble text size', and moving it shows a bubble at that size",
+      "ja": "「文字の大きさ」を「吹き出しの文字の大きさ」に。動かすとその大きさの吹き出しが出ます"
+    },
     {
       "v": "0.15.26",
       "ko": "설정 미리보기가 실제 카드와 같은 크기로 보이고, 모서리를 끌면 카드 폭·높이가 함께 바뀌어요",
@@ -111,5 +117,5 @@
       "ja": "ルーティンにもu・*を付けられる"
     }
   ],
-  "date": "2026-11-16T07:27:06.810Z"
+  "date": "2026-11-16T07:32:06.607Z"
 }

@@ -1,1 +1,1 @@
-self.MOBILE_VERSION = '0.15.26-dcf6d75c';
+self.MOBILE_VERSION = '0.15.27-9a244907';
