@@ -1,13 +1,19 @@
 {
-  "version": "0.15.25",
-  "url": "app-0.15.25.zip",
-  "sha256": "8fd30a64853a8131382768353c36ff00bbe09c87fa1d764b54c90330a34de497",
+  "version": "0.15.26",
+  "url": "app-0.15.26.zip",
+  "sha256": "f312c55d8e884a3c4654b6874725a5ea46cf5b333d8bbe42eb5aa2ae7f169fee",
   "notes": {
-    "ko": "설정 미리보기에서 바꾼 옆 카드 폭·높이가 할 일 창을 닫은 뒤에도 실제 카드에 그대로 적용",
-    "en": "Card width/height set in the settings preview now stay on the real card after closing the panel",
-    "ja": "設定プレビューで変えたカードの幅・高さが、パネルを閉じた後も実際のカードに反映"
+    "ko": "설정 미리보기가 실제 카드와 같은 크기로 보이고, 모서리를 끌면 카드 폭·높이가 함께 바뀌어요",
+    "en": "The settings preview shows the card at its real size; dragging its corner sets width and height together",
+    "ja": "設定プレビューが実際のカードと同じ大きさに。角をドラッグすると幅と高さが一緒に変わります"
   },
   "changes": [
+    {
+      "v": "0.15.26",
+      "ko": "설정 미리보기가 실제 카드와 같은 크기로 보이고, 모서리를 끌면 카드 폭·높이가 함께 바뀌어요",
+      "en": "The settings preview shows the card at its real size; dragging its corner sets width and height together",
+      "ja": "設定プレビューが実際のカードと同じ大きさに。角をドラッグすると幅と高さが一緒に変わります"
+    },
     {
       "v": "0.15.25",
       "ko": "설정 미리보기에서 바꾼 옆 카드 폭·높이가 할 일 창을 닫은 뒤에도 실제 카드에 그대로 적용",
@@ -105,5 +111,5 @@
       "ja": "ルーティンにもu・*を付けられる"
     }
   ],
-  "date": "2026-11-16T07:22:34.399Z"
+  "date": "2026-11-16T07:27:06.810Z"
 }
