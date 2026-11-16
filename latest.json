@@ -1,13 +1,19 @@
 {
-  "version": "0.15.24",
-  "url": "app-0.15.24.zip",
-  "sha256": "720b7d0673e067f4ac0057b033c8e7ed700d532977459d97465ddefda07a28d8",
+  "version": "0.15.25",
+  "url": "app-0.15.25.zip",
+  "sha256": "8fd30a64853a8131382768353c36ff00bbe09c87fa1d764b54c90330a34de497",
   "notes": {
-    "ko": "업데이트 알림에 그동안 바뀐 것들을 버전별로 보여줘요",
-    "en": "The update notice lists what changed in each version since yours",
-    "ja": "アップデートのお知らせで、バージョンごとの変更点を見せます"
+    "ko": "설정 미리보기에서 바꾼 옆 카드 폭·높이가 할 일 창을 닫은 뒤에도 실제 카드에 그대로 적용",
+    "en": "Card width/height set in the settings preview now stay on the real card after closing the panel",
+    "ja": "設定プレビューで変えたカードの幅・高さが、パネルを閉じた後も実際のカードに反映"
   },
   "changes": [
+    {
+      "v": "0.15.25",
+      "ko": "설정 미리보기에서 바꾼 옆 카드 폭·높이가 할 일 창을 닫은 뒤에도 실제 카드에 그대로 적용",
+      "en": "Card width/height set in the settings preview now stay on the real card after closing the panel",
+      "ja": "設定プレビューで変えたカードの幅・高さが、パネルを閉じた後も実際のカードに反映"
+    },
     {
       "v": "0.15.24",
       "ko": "업데이트 알림에 그동안 바뀐 것들을 버전별로 보여줘요",
@@ -99,5 +105,5 @@
       "ja": "ルーティンにもu・*を付けられる"
     }
   ],
-  "date": "2026-11-16T07:14:45.053Z"
+  "date": "2026-11-16T07:22:34.399Z"
 }
