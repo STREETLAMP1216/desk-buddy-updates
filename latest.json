@@ -1,9 +1,103 @@
 {
-  "version": "0.15.23",
-  "url": "app-0.15.23.zip",
-  "sha256": "945f4a3e4a840e4de61161fe7d27c423943a79600f36226e06fe4899ae3b3c08",
+  "version": "0.15.24",
+  "url": "app-0.15.24.zip",
+  "sha256": "720b7d0673e067f4ac0057b033c8e7ed700d532977459d97465ddefda07a28d8",
   "notes": {
-    "ko": "정리된 할 일 목록을 입력 칸에 통째로 붙여 넣으면 날짜별로 한 번에 들어가요"
+    "ko": "업데이트 알림에 그동안 바뀐 것들을 버전별로 보여줘요",
+    "en": "The update notice lists what changed in each version since yours",
+    "ja": "アップデートのお知らせで、バージョンごとの変更点を見せます"
   },
-  "date": "2026-11-16T07:07:25.518Z"
+  "changes": [
+    {
+      "v": "0.15.24",
+      "ko": "업데이트 알림에 그동안 바뀐 것들을 버전별로 보여줘요",
+      "en": "The update notice lists what changed in each version since yours",
+      "ja": "アップデートのお知らせで、バージョンごとの変更点を見せます"
+    },
+    {
+      "v": "0.15.23",
+      "ko": "설정 미리보기 카드의 옆·아래를 끌어서 옆 카드 폭·높이 조절",
+      "en": "Drag the settings preview's side/bottom to set the card's width/height",
+      "ja": "設定プレビューの横・下をドラッグしてカードの幅・高さを調整"
+    },
+    {
+      "v": "0.15.22",
+      "ko": "옆 카드 폭 설정이 다시 작동, 미리보기 모서리를 끌어서 크기 조절, 글씨를 더 작게",
+      "en": "Card width works again, drag the preview's corner to resize it, smaller text sizes",
+      "ja": "カードの幅設定が再び有効に、プレビューの角をドラッグで拡大縮小、文字をもっと小さく"
+    },
+    {
+      "v": "0.15.21",
+      "ko": "캐릭터를 80px까지 작게",
+      "en": "Character can be as small as 80px",
+      "ja": "キャラクターを80pxまで小さく"
+    },
+    {
+      "v": "0.15.20",
+      "ko": "설정 미리보기 크기 조절",
+      "en": "Settings preview size",
+      "ja": "設定プレビューの大きさを調整"
+    },
+    {
+      "v": "0.15.19",
+      "ko": "정리된 할 일 목록을 입력 칸에 통째로 붙여 넣으면 날짜별로 한 번에 들어가요",
+      "en": "Paste a whole tidied-up list into the add box and it goes in by date",
+      "ja": "整理したリストを入力欄にまとめて貼ると日付ごとに入ります"
+    },
+    {
+      "v": "0.15.18",
+      "ko": "블럭 쓰기 설정을 기본 탭으로",
+      "en": "Blocks setting moved to the Basic tab",
+      "ja": "ブロック設定を基本タブへ"
+    },
+    {
+      "v": "0.15.17",
+      "ko": "설정에서 블럭을 켜고 끌 수 있어요 (폰과 동기화)",
+      "en": "Turn blocks on/off in settings (synced with the phone)",
+      "ja": "設定でブロックのオン・オフ（スマホと同期）"
+    },
+    {
+      "v": "0.15.16",
+      "ko": "화면 끝에 두어도 할 일 창이 잘리지 않게, 알림만 모드에서 창이 점 바로 옆에",
+      "en": "The panel no longer gets cut off at the screen edge; in notices-only it opens right by the dot",
+      "ja": "画面の端でもパネルが切れないように、お知らせだけモードでは点のすぐ横に"
+    },
+    {
+      "v": "0.15.15",
+      "ko": "알람·일정 시간이 잘리던 것 수정",
+      "en": "Alarm and event times no longer get cut off",
+      "ja": "アラーム・予定の時刻が切れる問題を修正"
+    },
+    {
+      "v": "0.15.14",
+      "ko": "블럭 칸에서도 u 할 일·루틴은 u로 표시",
+      "en": "Block cells show u for u tasks and routines",
+      "ja": "ブロック欄でもuのタスク・ルーティンはuで表示"
+    },
+    {
+      "v": "0.15.13",
+      "ko": "상시 카드를 캐릭터 쪽 끝선에 맞춤",
+      "en": "The info card lines up with the character's edge",
+      "ja": "常時カードをキャラクター側の端に揃える"
+    },
+    {
+      "v": "0.15.12",
+      "ko": "말풍선·상시 카드가 캐릭터 쪽으로 정렬",
+      "en": "Bubble and info card align to the character's side",
+      "ja": "吹き出し・常時カードをキャラクター側に揃える"
+    },
+    {
+      "v": "0.15.11",
+      "ko": "알림만 모드는 아이콘 대신 작은 점",
+      "en": "Notices-only shows a small dot instead of the badge",
+      "ja": "お知らせだけモードはアイコンの代わりに小さな点"
+    },
+    {
+      "v": "0.15.10",
+      "ko": "루틴에도 u·* 표시",
+      "en": "Routines can carry u and *",
+      "ja": "ルーティンにもu・*を付けられる"
+    }
+  ],
+  "date": "2026-11-16T07:14:45.053Z"
 }
