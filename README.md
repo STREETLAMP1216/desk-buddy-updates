@@ -1,6 +1,6 @@
 # 책상 친구 업데이트
 
-최신 버전: **v0.16.1** — 옆 메모: 마우스를 잠깐 올려 두면 잡혀서 바로 클릭해 수정·휠로 스크롤, 투명도 설정도 같이 적용
+최신 버전: **v0.16.2** — 옆 메모마다 모서리를 끌어서 크기(폭·높이) 바로 조절
 
 처음 설치: [DeskBuddy-latest.zip](https://raw.githubusercontent.com/STREETLAMP1216/desk-buddy-updates/main/DeskBuddy-latest.zip) 을 받아 압축을 풀고 `install.bat`.
 이후 업데이트는 프로그램이 알아서 확인해요.

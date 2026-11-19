@@ -1,13 +1,19 @@
 {
-  "version": "0.16.1",
-  "url": "app-0.16.1.zip",
-  "sha256": "e16b00cda491604c47d01bd1b4e84f83aa53364b69b8989fdaba2d01df351fad",
+  "version": "0.16.2",
+  "url": "app-0.16.2.zip",
+  "sha256": "8732b90b95599aca074878a93e246b72d4f9cab0e10d63a1421b1ceeb87519a6",
   "notes": {
-    "ko": "옆 메모: 마우스를 잠깐 올려 두면 잡혀서 바로 클릭해 수정·휠로 스크롤, 투명도 설정도 같이 적용",
-    "en": "Memos beside the card: rest the mouse on one to grab it — click to edit, wheel to scroll; follows the transparency setting",
-    "ja": "横のメモ：マウスを少し置くと掴めて、クリックで編集・ホイールでスクロール。透明度設定も適用"
+    "ko": "옆 메모마다 모서리를 끌어서 크기(폭·높이) 바로 조절",
+    "en": "Drag a memo's corner to resize it (width and height, per memo)",
+    "ja": "横のメモごとに角をドラッグして大きさ（幅・高さ）を調整"
   },
   "changes": [
+    {
+      "v": "0.16.2",
+      "ko": "옆 메모마다 모서리를 끌어서 크기(폭·높이) 바로 조절",
+      "en": "Drag a memo's corner to resize it (width and height, per memo)",
+      "ja": "横のメモごとに角をドラッグして大きさ（幅・高さ）を調整"
+    },
     {
       "v": "0.16.1",
       "ko": "옆 메모: 마우스를 잠깐 올려 두면 잡혀서 바로 클릭해 수정·휠로 스크롤, 투명도 설정도 같이 적용",
@@ -129,5 +135,5 @@
       "ja": "ルーティンにもu・*を付けられる"
     }
   ],
-  "date": "2026-11-19T08:19:23.015Z"
+  "date": "2026-11-19T08:26:49.911Z"
 }
