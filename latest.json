@@ -1,13 +1,19 @@
 {
-  "version": "0.15.27",
-  "url": "app-0.15.27.zip",
-  "sha256": "5fff71e8baedf85291b67cd2cf759c952bc32654d8e318e4feefc88f26b27112",
+  "version": "0.16.0",
+  "url": "app-0.16.0.zip",
+  "sha256": "88c1bec61eaa3242c97425649bab924201537baa3edee7006d8cf29d31d6cbd3",
   "notes": {
-    "ko": "'글씨 크기'를 '말풍선 글씨 크기'로 이름을 바꾸고, 슬라이더를 움직이면 말풍선이 그 크기로 바로 보여요",
-    "en": "'Text size' is now 'Speech bubble text size', and moving it shows a bubble at that size",
-    "ja": "「文字の大きさ」を「吹き出しの文字の大きさ」に。動かすとその大きさの吹き出しが出ます"
+    "ko": "메모를 상시 카드 옆에 여러 개 띄워 두기 — 평소엔 마우스가 지나가고, Ctrl + 클릭으로 바로 수정, 메모마다 글씨 크기 따로",
+    "en": "Keep several memos beside the info card — click-through normally, Ctrl + click to edit in place, text size per memo",
+    "ja": "メモを常時カードの横に複数表示 — 普段はクリックが通り抜け、Ctrl + クリックでその場で編集、メモごとに文字サイズ"
   },
   "changes": [
+    {
+      "v": "0.16.0",
+      "ko": "메모를 상시 카드 옆에 여러 개 띄워 두기 — 평소엔 마우스가 지나가고, Ctrl + 클릭으로 바로 수정, 메모마다 글씨 크기 따로",
+      "en": "Keep several memos beside the info card — click-through normally, Ctrl + click to edit in place, text size per memo",
+      "ja": "メモを常時カードの横に複数表示 — 普段はクリックが通り抜け、Ctrl + クリックでその場で編集、メモごとに文字サイズ"
+    },
     {
       "v": "0.15.27",
       "ko": "'글씨 크기'를 '말풍선 글씨 크기'로 이름을 바꾸고, 슬라이더를 움직이면 말풍선이 그 크기로 바로 보여요",
@@ -117,5 +123,5 @@
       "ja": "ルーティンにもu・*を付けられる"
     }
   ],
-  "date": "2026-11-16T07:32:06.607Z"
+  "date": "2026-11-19T08:13:29.859Z"
 }
