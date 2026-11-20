@@ -1,13 +1,19 @@
 {
-  "version": "0.16.2",
-  "url": "app-0.16.2.zip",
-  "sha256": "8732b90b95599aca074878a93e246b72d4f9cab0e10d63a1421b1ceeb87519a6",
+  "version": "0.16.3",
+  "url": "app-0.16.3.zip",
+  "sha256": "240f6b58e46e84104e0d17aa01e5dac9fc90eb2f4c400e3a8e03965f1552a2a1",
   "notes": {
-    "ko": "옆 메모마다 모서리를 끌어서 크기(폭·높이) 바로 조절",
-    "en": "Drag a memo's corner to resize it (width and height, per memo)",
-    "ja": "横のメモごとに角をドラッグして大きさ（幅・高さ）を調整"
+    "ko": "옆 메모 편집 중 '완료' 버튼으로 저장하고 끝내기",
+    "en": "A 'Done' button to save and stop editing a memo beside the card",
+    "ja": "横のメモの編集中に「完了」ボタンで保存して終了"
   },
   "changes": [
+    {
+      "v": "0.16.3",
+      "ko": "옆 메모 편집 중 '완료' 버튼으로 저장하고 끝내기",
+      "en": "A 'Done' button to save and stop editing a memo beside the card",
+      "ja": "横のメモの編集中に「完了」ボタンで保存して終了"
+    },
     {
       "v": "0.16.2",
       "ko": "옆 메모마다 모서리를 끌어서 크기(폭·높이) 바로 조절",
@@ -135,5 +141,5 @@
       "ja": "ルーティンにもu・*を付けられる"
     }
   ],
-  "date": "2026-11-19T08:26:49.911Z"
+  "date": "2026-11-20T15:46:41.053Z"
 }
